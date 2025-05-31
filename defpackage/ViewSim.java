@@ -501,9 +501,13 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
                 this.instrMemFrame.setWidths();
             }
             this.instrMemFrame.showMachineOld = this.instrMemFrame.showMachine;
+            int realInstructionIndex = 0;
             for (int i9 = 0; i9 < this.instrMemFrame.MAX_VALS; i9++) {
-                this.instrMemFrame.tModel.data[i9][0] = ProcFunc.slimBinary(ProcFunc.zeroExtend(Functions.toBin(i9 * 4), 6), true, true);
-                this.instrMemFrame.tModel.data[i9][1] = Integer.toString(i9 * 4);
+                if (!this.sim.source.assembly.instr[i9].isEmpty()) {
+                    this.instrMemFrame.tModel.data[i9][0] = ProcFunc.slimBinary(ProcFunc.zeroExtend(Functions.toBin(realInstructionIndex * 4), 6), true, true);
+                    this.instrMemFrame.tModel.data[i9][1] = Integer.toString(realInstructionIndex * 4);
+                    realInstructionIndex++;
+                }
                 this.instrMemFrame.tModel.data[i9][3] = this.sim.source.assembly.instr[i9].comment;
                 if (this.instrMemFrame.showMachine) {
                     this.instrMemFrame.tModel.data[i9][2] = this.sim.source.assembly.instr[i9].strMach;

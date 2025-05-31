@@ -54,7 +54,7 @@ class CompFrame extends JFrame implements ActionListener {
     public CompFrame(String str, int i, ViewSim viewSim) {
 
         super(str);
-        Rectangle r0 = getBounds();
+        Dimension r0 = Toolkit.getDefaultToolkit().getScreenSize();;
         this.hideEmpty = false;
         this.showMachine = false;
         this.showMachineOld = false;
@@ -209,37 +209,40 @@ class CompFrame extends JFrame implements ActionListener {
         if (this.instrMem) {
             this.MAX_VALS = this.viewSim.sim.source.assembly.numInstr;
         }
-        if (this.registers) {
-            newModel(this.MAX_VALS, 4);
-        } else if (this.mainMem) {
-            newModel(this.MAX_VALS, 4);
-        } else if (this.instrMem) {
-            newModel(this.MAX_VALS, 4);
-        }
-        for (int i = 0; i < this.MAX_VALS; i++) {
-            if (this.registers) {
-                this.tModel.data[i][0] = ProcFunc.zeroExtend(Functions.toBin(i), 5);
-                this.tModel.data[i][1] = Assembly.regNumToString(i);
-                this.tModel.data[i][2] = ProcFunc.slimBinary(ProcFunc.zeroExtend("0", 32));
-                this.tModel.data[i][3] = "0";
-            } else if (this.mainMem) {
-                this.tModel.data[i][0] = Integer.toString(i);
-                if (i % 4 == 0) {
-                    this.tModel.data[i][1] = Integer.toString(i / 4);
-                    this.tModel.data[i][3] = "0";
-                } else {
-                    this.tModel.data[i][1] = "";
-                    this.tModel.data[i][3] = "";
-                }
-                this.tModel.data[i][2] = "0";
-            } else if (this.instrMem) {
-                System.out.println(i);
-                this.tModel.data[i][0] = ProcFunc.slimBinary(ProcFunc.zeroExtend(Functions.toBin(i * 4), 6), true, true);
-                this.tModel.data[i][1] = Integer.toString(i * 4);
-                this.tModel.data[i][2] = this.viewSim.sim.source.assembly.instr[i].str;
-                this.tModel.data[i][3] = this.viewSim.sim.source.assembly.instr[i].comment;
-            }
-        }
+        newModel(this.MAX_VALS, 4);
+        // if (this.registers) {
+        //     for (int i = 0; i < this.MAX_VALS; i++) {
+        //         this.tModel.data[i][0] = ProcFunc.zeroExtend(Functions.toBin(i), 5);
+        //         this.tModel.data[i][1] = Assembly.regNumToString(i);
+        //         this.tModel.data[i][2] = ProcFunc.slimBinary(ProcFunc.zeroExtend("0", 32));
+        //         this.tModel.data[i][3] = "0";
+        //     }
+        // } else if (this.mainMem) {
+        //     for (int i = 0; i < this.MAX_VALS; i++) {
+        //         this.tModel.data[i][0] = Integer.toString(i);
+        //         if (i % 4 == 0) {
+        //             this.tModel.data[i][1] = Integer.toString(i / 4);
+        //             this.tModel.data[i][3] = "0";
+        //         } else {
+        //             this.tModel.data[i][1] = "";
+        //             this.tModel.data[i][3] = "";
+        //         }
+        //         this.tModel.data[i][2] = "0";
+        //     }
+        // } else if (this.instrMem) {
+        //     int realInstructionIndex = 0;
+        //     for (int i = 0; i < this.MAX_VALS; i++) {
+        //         if (!this.viewSim.sim.source.assembly.instr[i].isEmpty()) {
+        //             this.tModel.data[i][0] = ProcFunc.slimBinary(ProcFunc.zeroExtend(Functions.toBin(realInstructionIndex * 4), 6), true, true);
+        //             this.tModel.data[i][1] = Integer.toString(realInstructionIndex * 4);
+        //             realInstructionIndex++;
+        //             System.out.println(this.viewSim.sim.source.assembly.instr[i].str);
+        //         }
+        //         this.tModel.data[i][2] = this.viewSim.sim.source.assembly.instr[i].str;
+        //         this.tModel.data[i][3] = this.viewSim.sim.source.assembly.instr[i].comment;
+        //     }
+        // }
+
         this.table = new JTable(this.tModel);
         try {
             this.table.setDefaultRenderer(Class.forName("java.lang.String"), this.mcr);

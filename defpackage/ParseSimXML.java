@@ -86,6 +86,7 @@ class ParseSimXML {
             return true;
         } catch (Exception e) {
             ProcSim.outErr("Error in XML Document...");
+            e.printStackTrace(System.out);
             ProcSim.outErr(e.getMessage());
             ProcSim.outErr("\n==XML Failed Parsing==\n");
             if (!this.starting) {

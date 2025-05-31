@@ -23,12 +23,17 @@ public class Instruction {
 	 * @see ControlUnitConfiguration
 	 * @see CPU
 	 */
+	public Instruction() {
+		this.isEmpty = true;
+	}
+	
 	public Instruction(Mnemonic mnemonic, int[] args, int editorLineNumber, 
 			ControlUnitConfiguration controlSignals) {
 		this.mnemonic = mnemonic;
 		this.args = args;
 		this.editorLineNumber = editorLineNumber;
 		this.controlSignals = controlSignals;
+		this.isEmpty = false;
 	}
 	
 	/**
@@ -57,6 +62,10 @@ public class Instruction {
 	 */
 	public ControlUnitConfiguration getControlSignals() {
 		return controlSignals;
+	}
+
+	public boolean isEmpty() {
+		return isEmpty;
 	}
 	
 	public static String getInstructionMachineCode(Instruction ins, int instructionIndex) {
@@ -226,10 +235,11 @@ public class Instruction {
 	private int[] args;
 	private int editorLineNumber;
 	private ControlUnitConfiguration controlSignals;
+	private boolean isEmpty;
 
 	public String strNoLbl;
     public String strMach;
-    public String instr;
+    public String instr = "";
 	public String str;
 	public String comment;
 }

@@ -179,7 +179,8 @@ class LoadSim extends Frame implements ActionListener, ItemListener, TextListene
         setupFrame();
         this.diagCanvas = this.source.diagCanvas;
         this.parser = new ParseSimXML(this);
-        this.parser.startParse(this.source.sim);
+        // disable default path
+        // this.parser.startParse(this.source.sim);
         this.jsp = new JScrollPane();
         this.jsp.setOpaque(false);
         this.jsp.setDoubleBuffered(true);

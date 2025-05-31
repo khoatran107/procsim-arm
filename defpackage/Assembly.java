@@ -218,13 +218,14 @@ class Assembly extends TextEditor implements ActionListener {
     public boolean doParse() {
         this.source.lblAssem.setText("   Assembly: " + this.path);
         ProcSim.out("\n\n====Parsing Started====\n");
-        this.numInstr = 0;
         this.numDirects = 0;
         String rawText = this.txtDoc.getText();
         String[] lines = rawText.split("\\R"); // Splits on any linebreak: \n, \r\n, \r
         code = new ArrayList<TextLine>();
         for (String line : lines) {
-            code.add(new TextLine(line));
+            if (!line.trim().isEmpty()) {
+                code.add(new TextLine(line));
+            }
         }
         branchTable = new HashMap<String, Integer>();
 		cpuInstructions = new ArrayList<Instruction>();
@@ -233,21 +234,23 @@ class Assembly extends TextEditor implements ActionListener {
 		populateBranchTable();
 		decodeInstructions();
         instr = cpuInstructions.toArray(new Instruction[0]);
+        this.numInstr = instr.length;
         int labelLen, mnemonicLen;
         labelLen = mnemonicLen = 0;
-        for (int i = 0; i < instr.length; i++) {
+        for (int i = 0; i < this.numInstr; i++) {
             String currentLabel = code.get(i).getLabel();
-            String currentMnemonic = code.get(i).getMnemonic().nameUpper;
             labelLen = Math.max(labelLen, currentLabel == null ? 0: currentLabel.length());
-            mnemonicLen = Math.max(mnemonicLen, currentMnemonic == null ? 0: currentMnemonic.length());
+            Mnemonic currentMnemonic = code.get(i).getMnemonic();
+            mnemonicLen = Math.max(mnemonicLen, currentMnemonic == null ? 0: currentMnemonic.nameUpper.length());
         }
 
-        for (int i = 0; i < instr.length; i++) {
+        for (int i = 0; i < this.numInstr; i++) {
             instr[i].str = instr[i].strNoLbl = code.get(i).getLinePadded(labelLen, mnemonicLen);
-            instr[i].strMach = Instruction.getInstructionMachineCode(instr[i], i);
+            if (!instr[i].isEmpty()) {
+                instr[i].strMach = Instruction.getInstructionMachineCode(instr[i], i);
+            }
             instr[i].comment = code.get(i).getComment();
         }
-        this.numInstr = instr.length;
         for (int i = 0; i < compileErrors.size(); i++) {
             ProcSim.outErr(compileErrors.get(i).getMsg() + " on line " + compileErrors.get(i).getLineNumber());
         }
@@ -313,7 +316,10 @@ class Assembly extends TextEditor implements ActionListener {
 				} catch (ImmediateOutOfBoundsException ioobe) {
 					compileErrors.add(new Error(ioobe.getMessage(), i));
 				}
-			}
+			} else {
+                System.out.println(line);
+                cpuInstructions.add(new Instruction());
+            }
 		}
 	}
 

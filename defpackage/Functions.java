@@ -267,7 +267,7 @@ public class Functions {
                         Thread.yield();
                         sim.source.viewSim.instrMemFrame.yourLabel.setText(sim.source.assembly.instr[i3 / 4].comment);
                     }
-                    if (sim.source.assembly.instr[i3 / 4].instr.equals("exit") || i3 / 4 > sim.source.assembly.numInstr) {
+                    if (i3 / 4 > sim.source.assembly.numInstr) {
                         ProcSim.out("Found end of instructions - stopping execution");
                         strArr[0][0] = "0";
                         strArr[0][1] = "Exit";

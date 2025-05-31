@@ -1,5 +1,5 @@
 ADDI    X1, XZR, #101
-ADDI    X2, XZR, #554
+ADDI    X2, XZR, #54
 AND     X3, X1, X2
 ORR     X4, X1, X2
 ANDI    X5, X1, #92

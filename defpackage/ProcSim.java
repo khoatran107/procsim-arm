@@ -139,8 +139,8 @@ class ProcSim extends Frame implements ActionListener {
         this.mainPanel.setBackground(new Color(249, 250, 222));
         add(this.mainPanel, "Center");
         this.assembly = new Assembly(this);
-        this.assembly.openFile("sample just R-Format.asm");
-        this.assembly.doParse();
+        // this.assembly.openFile("sample just R-Format.asm");
+        // this.assembly.doParse();
         this.diagCanvas = new DiagCanvas(this);
         this.sim = new Simulator(this);
         this.loadSim = new LoadSim(this);
