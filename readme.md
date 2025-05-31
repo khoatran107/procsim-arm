@@ -1,6 +1,6 @@
 Build:
 ```
-javac -cp xercesImpl-2.12.2.jar -d . defpackage/*.java
+javac -cp xercesImpl-2.12.2.jar -d . defpackage/**/*.java
 jar cvf myprogram.jar defpackage/
 ```
 

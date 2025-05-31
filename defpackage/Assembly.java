@@ -7,24 +7,36 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.StringTokenizer;
 import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import defpackage.instruction.Instruction;
+import defpackage.instruction.UndefinedLabelException;
+import defpackage.instruction.ImmediateOutOfBoundsException;
+import defpackage.lexer.TextLine;
+import defpackage.instruction.Decoder;
+import defpackage.instruction.Mnemonic;
 
 /* loaded from: ProcSim.jar:Assembly.class */
 class Assembly extends TextEditor implements ActionListener {
     Button butAssemble;
-    Instruction[] instr;
     int numInstr;
     String[][] directives;
     int numDirects;
     Vector<String> supportedISA;
     MenuItem fmSupportedISA;
     boolean doneCheck;
+    ArrayList<TextLine> code;
+    ArrayList<Error> compileErrors;
+    HashMap<String, Integer> branchTable;
+    ArrayList<Instruction> cpuInstructions;
+    Instruction[] instr;
 
     public Assembly(ProcSim procSim) {
         super(procSim, "Assembly/Machine Code");
@@ -207,351 +219,108 @@ class Assembly extends TextEditor implements ActionListener {
         ProcSim.out("\n\n====Parsing Started====\n");
         this.numInstr = 0;
         this.numDirects = 0;
-        StringTokenizer stringTokenizer = new StringTokenizer(this.txtDoc.getText(), "\n");
-        int countTokens = stringTokenizer.countTokens();
-        this.instr = new Instruction[countTokens];
-        for (int i = 0; i < countTokens; i++) {
-            String trim = stringTokenizer.nextToken().trim();
-            if (!trim.equals("")) {
-                if (trim.length() > ".register".length() && trim.substring(0, ".register".length()).equals(".register")) {
-                    this.directives[this.numDirects][0] = trim;
-                    this.numDirects++;
-                } else if (!trim.substring(0, 1).equals("#")) {
-                    this.instr[this.numInstr] = new Instruction();
-                    this.instr[this.numInstr].str = new String(trim);
-                    ProcSim.out("Instr" + Integer.toString(this.numInstr) + ": " + this.instr[this.numInstr].str);
-                    this.numInstr++;
-                }
-            }
+        String rawText = this.txtDoc.getText();
+        String[] lines = rawText.split("\\R"); // Splits on any linebreak: \n, \r\n, \r
+        code = new ArrayList<TextLine>();
+        for (String line : lines) {
+            code.add(new TextLine(line));
         }
-        for (int i2 = 0; i2 < this.numDirects; i2++) {
-            String trim2 = this.directives[i2][0].trim();
-            for (int i3 = 0; i3 < trim2.length(); i3++) {
-                if (trim2.substring(i3, i3 + 1).equals("#")) {
-                    trim2 = trim2.substring(0, i3).trim();
-                }
-            }
-            int indexOf = trim2.indexOf(" ");
-            if (indexOf > -1 && trim2.substring(0, indexOf).equals(".register")) {
-                this.directives[i2][0] = trim2.substring(0, indexOf);
-                String trim3 = trim2.substring(indexOf, trim2.length()).trim();
-                int indexOf2 = trim3.indexOf(" ");
-                this.directives[i2][1] = registerConvert(trim3.substring(0, indexOf2));
-                this.directives[i2][2] = Functions.toBin(Integer.parseInt(trim3.substring(indexOf2, trim3.length()).trim()));
-            }
+        branchTable = new HashMap<String, Integer>();
+		cpuInstructions = new ArrayList<Instruction>();
+		compileErrors = new ArrayList<Error>();
+        parseCode();
+		populateBranchTable();
+		decodeInstructions();
+        instr = cpuInstructions.toArray(new Instruction[0]);
+        for (int i = 0; i < instr.length; i++) {
+            instr[i].str = instr[i].strNoLbl = code.get(i).getLine();
+            instr[i].strMach = Instruction.getInstructionMachineCode(instr[i], i);
         }
-        for (int i4 = 0; i4 < this.numInstr; i4++) {
-            String trim4 = this.instr[i4].str.trim();
-            boolean z = false;
-            for (int i5 = 0; i5 < trim4.length() && !z; i5++) {
-                if (trim4.substring(i5, i5 + 1).equals(":")) {
-                    z = true;
-                    this.instr[i4].label = trim4.substring(0, i5).trim();
-                    ProcSim.out("Label:" + this.instr[i4].label);
-                }
-            }
-            if (!z) {
-                this.instr[i4].label = "";
-            }
+        for (int i = 0; i < instr.length; i++) {
+            System.out.println(i + instr[i].str + " - " + instr[i].strMach);
         }
-        for (int i6 = 0; i6 < this.numInstr; i6++) {
-            String trim5 = this.instr[i6].str.trim();
-            for (int i7 = 0; i7 < trim5.length(); i7++) {
-                if (trim5.substring(i7, i7 + 1).equals("#")) {
-                    this.instr[i6].comment = trim5.substring(i7, trim5.length()).trim();
-                    trim5 = trim5.substring(0, i7).trim();
-                }
-            }
-            this.instr[i6].str = trim5;
-            for (int i8 = 0; i8 < trim5.length(); i8++) {
-                if (trim5.substring(i8, i8 + 1).equals(":")) {
-                    trim5 = trim5.substring(i8 + 1, trim5.length()).trim();
-                }
-            }
-            this.instr[i6].strNoLbl = trim5;
-            if (trim5.equals("") && this.instr[i6].label.compareToIgnoreCase("exit") == 0) {
-                this.instr[i6].instr = "exit";
-                ProcSim.out("InstrName" + Integer.toString(i6) + ": Exit Label");
-            } else if (trim5.length() == 32 && (trim5.substring(0, 1).equals("1") || trim5.substring(0, 1).equals("0"))) {
-                ProcSim.out("OK: Is machine code already");
-                this.instr[i6].strMach = trim5;
-                this.instr[i6].str = ProcFunc.slimBinary(trim5);
-                this.instr[i6].strNoLbl = ProcFunc.slimBinary(trim5);
-                this.instr[i6].instr = "machine";
-            } else {
-                int indexOf3 = trim5.indexOf(" ");
-                if (indexOf3 == -1) {
-                    ProcSim.outErr("Error, instruction incomplete, instruction: " + Integer.toString(i6));
-                    return false;
-                }
-                this.instr[i6].instr = trim5.substring(0, indexOf3);
-                String trim6 = trim5.substring(indexOf3, trim5.length()).trim();
-                ProcSim.out("InstrName" + Integer.toString(i6) + ": " + this.instr[i6].instr);
-                int indexOf4 = trim6.indexOf(",");
-                if (this.instr[i6].instr.equals("j")) {
-                    this.instr[i6].param1 = trim6.trim();
-                } else {
-                    if (indexOf4 == -1) {
-                        ProcSim.outErr("Error, no comma found in instruction: " + Integer.toString(i6));
-                        return false;
-                    }
-                    this.instr[i6].param1 = trim6.substring(0, indexOf4);
-                    ProcSim.out("param1-" + Integer.toString(i6) + ": " + this.instr[i6].param1);
-                    String trim7 = trim6.substring(indexOf4 + 1, trim6.length()).trim();
-                    int indexOf5 = trim7.indexOf(",");
-                    if (indexOf5 != -1) {
-                        this.instr[i6].param2 = trim7.substring(0, indexOf5);
-                        ProcSim.out("param2-" + Integer.toString(i6) + ": " + this.instr[i6].param2);
-                        trim7 = trim7.substring(indexOf5 + 1, trim7.length()).trim();
-                    }
-                    if (indexOf5 == -1) {
-                        this.instr[i6].param2 = trim7.substring(0, trim7.length()).trim();
-                        ProcSim.out("param2-" + Integer.toString(i6) + ": " + this.instr[i6].param2);
-                        this.instr[i6].param3 = "";
-                    } else {
-                        this.instr[i6].param3 = trim7.substring(0, trim7.length()).trim();
-                        ProcSim.out("param3-" + Integer.toString(i6) + ": " + this.instr[i6].param3);
-                    }
-                }
-            }
+        for (int i = 0; i < compileErrors.size(); i++) {
+            ProcSim.outErr(compileErrors.get(i).getMsg() + " on line " + compileErrors.get(i).getLineNumber());
         }
-        this.doneCheck = false;
-        for (int i9 = 0; i9 < this.numInstr; i9++) {
-            this.instr[i9].address = ProcFunc.zeroExtend(Integer.toBinaryString(i9), 32);
-            if (!this.instr[i9].instr.equals("exit") && !this.instr[i9].instr.equals("machine")) {
-                this.instr[i9].strMach = doAssemble(this.instr[i9]);
-                ProcSim.out("Machine code " + Integer.toString(i9) + ": " + this.instr[i9].strMach);
-                if (this.instr[i9].strMach.equals("err")) {
-                    ProcSim.outErr("Error in instruction : " + Integer.toString(i9));
-                    return false;
-                }
-            }
-        }
-        return true;
+        return compileErrors.isEmpty();
     }
 
-    public String doAssemble(Instruction instruction) {
-        String str;
-        String binaryString;
-        String zeroExtend;
-        String registerConvert;
-        String str2 = "err";
-        String str3 = "err";
-        String str4 = instruction.instr;
-        if (!this.doneCheck && !isSupported(str4)) {
-            this.doneCheck = true;
-            ProcSim.outErr("Instruction not supported: " + str4 + " (will continue, but not recommended!)");
-        }
-        if (str4.equals("add") || str4.equals("sub") || str4.equals("and") || str4.equals("or") || str4.equals("slt")) {
-            if (str4.equals("add")) {
-                str = Integer.toBinaryString(32);
-            } else if (str4.equals("sub")) {
-                str = Integer.toBinaryString(34);
-            } else if (str4.equals("and")) {
-                str = Integer.toBinaryString(36);
-            } else if (str4.equals("or")) {
-                str = Integer.toBinaryString(37);
-            } else if (str4.equals("slt")) {
-                str = Integer.toBinaryString(42);
-            } else {
-                str = "0";
-            }
-            String zeroExtend2 = ProcFunc.zeroExtend(str, 6);
-            String registerConvert2 = registerConvert(instruction.param2);
-            String registerConvert3 = registerConvert(instruction.param3);
-            String registerConvert4 = registerConvert(instruction.param1);
-            if (registerConvert2.equals("err") || registerConvert3.equals("err") || registerConvert4.equals("err")) {
-                ProcSim.outErr("Error in instruction: " + instruction.str);
-                return "err";
-            }
-            return "000000" + registerConvert2 + registerConvert3 + registerConvert4 + "00000" + zeroExtend2;
-        }
-        if (str4.equals("lw") || str4.equals("sw") || str4.equals("beq") || str4.equals("addi") || str4.equals("andi") || str4.equals("ori")) {
-            if (str4.equals("lw")) {
-                binaryString = Integer.toBinaryString(35);
-            } else if (str4.equals("sw")) {
-                binaryString = Integer.toBinaryString(43);
-            } else if (str4.equals("beq")) {
-                binaryString = Integer.toBinaryString(4);
-            } else if (str4.equals("addi")) {
-                binaryString = Integer.toBinaryString(8);
-            } else if (str4.equals("andi")) {
-                binaryString = Integer.toBinaryString(12);
-            } else {
-                binaryString = Integer.toBinaryString(13);
-            }
-            zeroExtend = ProcFunc.zeroExtend(binaryString, 6);
-            if (str4.equals("beq")) {
-                str2 = registerConvert(instruction.param1);
-                registerConvert = registerConvert(instruction.param2);
-                int i = -1;
-                for (int i2 = 0; i2 < this.numInstr; i2++) {
-                    if (this.instr[i2].label.equals(instruction.param3)) {
-                        i = i2;
-                    }
-                }
-                if (i == -1) {
-                    ProcSim.outErr("Error, branch label not found: " + instruction.param3);
-                    return "err";
-                }
-                int parseInt = (i - Integer.parseInt(instruction.address, 2)) - 1;
-                str3 = ProcFunc.signExtend(Functions.toBin(parseInt), 16);
-                ProcSim.out("beq address offset: " + Integer.toString(parseInt) + " : " + str3);
-            } else {
-                registerConvert = registerConvert(instruction.param1);
-                if (str4.equals("addi") || str4.equals("andi") || str4.equals("ori")) {
-                    str2 = registerConvert(instruction.param2);
-                    try {
-                        str3 = ProcFunc.zeroExtend(Integer.toBinaryString(Integer.parseInt(instruction.param3)), 16);
-                    } catch (Exception e) {
-                        ProcSim.outErr("Error: " + str4 + " requires an integer constant for its final parameter");
-                        return "err";
-                    }
-                } else {
-                    String str5 = instruction.param2;
-                    boolean z = false;
-                    for (int i3 = 0; i3 < str5.length() && !z; i3++) {
-                        try {
-                            if (str5.substring(i3, i3 + 1).equals("(")) {
-                                z = true;
-                                String trim = str5.substring(0, i3).trim();
-                                String trim2 = str5.substring(i3 + 1, str5.length() - 1).trim();
-                                ProcSim.out("LW or SW Address Base: " + trim2 + " & Offset:" + trim);
-                                str3 = ProcFunc.zeroExtend(Integer.toBinaryString(Integer.parseInt(trim)), 16);
-                                str2 = registerConvert(trim2);
-                            }
-                        } catch (Exception e2) {
-                            z = false;
-                        }
-                    }
-                    if (!z) {
-                        ProcSim.outErr("Error, address in incorrect format (eg '0($s2)' ): " + instruction.param3);
-                        return "err";
-                    }
-                }
-            }
-        } else if (str4.equals("j")) {
-            str2 = "";
-            registerConvert = "";
-            zeroExtend = ProcFunc.zeroExtend(Integer.toBinaryString(2), 6);
-            int i4 = -1;
-            for (int i5 = 0; i5 < this.numInstr; i5++) {
-                if (this.instr[i5].label.equals(instruction.param1)) {
-                    i4 = i5;
-                }
-            }
-            if (i4 == -1) {
-                ProcSim.outErr("Error, jump label not found: " + instruction.param1);
-                return "err";
-            }
-            str3 = ProcFunc.signExtend(Functions.toBin(i4), 26);
-            ProcSim.out("jump address points to: " + Integer.toString(i4) + " : " + str3);
-        } else {
-            ProcSim.outErr("Error, function not found: " + str4);
-            return "err";
-        }
-        if (str2.equals("err") || registerConvert.equals("err")) {
-            ProcSim.outErr("Error in instruction: " + instruction.str);
-            return "err";
-        }
-        return zeroExtend + str2 + registerConvert + str3;
-    }
+    	
+	/**
+	 * For each line of source code: attempt to generate tokens and then parse.
+	 */
+	/*
+	 * Any errors are stored in the compileErrors arraylist
+	 */
+	public void parseCode() {
+		for (int i=0; i<code.size(); i++) {
+			if (!code.get(i).getLine().isEmpty()) {
+				code.get(i).tokenize();
+				if (code.get(i).getNumTokens()>0) { // Why would there be an error message is the number of tokens is greater than 0?
+					String errorMsg = code.get(i).parse();
+					if (errorMsg != null) {
+						compileErrors.add(new Error(errorMsg, i));
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * For each label in the source code, an entry is inserted into the branch lookup table
+	 * mapping from the label to the index of the instruction immediately after it.
+	 */
+	public void populateBranchTable() {
+		String label;
+		Mnemonic mnem;
+		int instructionCount = 0;
+		for (int i=0; i<code.size(); i++) {
+			label = code.get(i).getLabel();
+			mnem = code.get(i).getMnemonic();
+			if (label != null) {
+				branchTable.put(label, instructionCount);
+			}
+			if (mnem != null) {
+				instructionCount++;
+			}
+		}
+	}
+	
+	/**
+	 * Attempt to generate a list of instructions from the parsed lines of source code
+	 */
+	/*
+	 * Errors are stored in the compileErros arraylist
+	 */
+	public void decodeInstructions() {
+		TextLine line;
+		for (int i=0; i<code.size(); i++) {
+			line = code.get(i);
+			if (line.getMnemonic() != null) {
+				try {
+					cpuInstructions.add(Decoder.getInstruction(
+							line.getMnemonic(), line.getArgs(), i, branchTable));
+				} catch (UndefinedLabelException ule) {
+					compileErrors.add(new Error(ule.getMessage(), i));
+				} catch (ImmediateOutOfBoundsException ioobe) {
+					compileErrors.add(new Error(ioobe.getMessage(), i));
+				}
+			}
+		}
+	}
 
-    static String regNumToString(int i) {
-        String str;
-        if (i < 0 || i > 32) {
+    static String regNumToString(int regNum) {
+        if (regNum < 0 || regNum > 32) {
             return "0";
         }
-        if (i == 0) {
-            str = "$0";
-        } else if (i == 1) {
-            str = "$at";
-        } else {
-            try {
-                if (i > 1 && i < 4) {
-                    str = "$v" + Integer.toString(i - 2);
-                } else if (i > 3 && i < 8) {
-                    str = "$a" + Integer.toString(i - 4);
-                } else if (i > 7 && i < 16) {
-                    str = "$t" + Integer.toString(i - 8);
-                } else if (i > 15 && i < 24) {
-                    str = "$s" + Integer.toString(i - 16);
-                } else if (i > 23 && i < 26) {
-                    str = "$t" + Integer.toString(i - 16);
-                } else if (i == 26) {
-                    str = "$k0";
-                } else if (i == 27) {
-                    str = "$k1";
-                } else if (i == 28) {
-                    str = "$gp";
-                } else if (i == 29) {
-                    str = "$sp";
-                } else if (i == 30) {
-                    str = "$fp";
-                } else {
-                    if (i != 31) {
-                        ProcSim.outErr("ERROR in register, unknown register number: " + Integer.toString(i));
-                        return "err";
-                    }
-                    str = "$ra";
-                }
-            } catch (Exception e) {
-                ProcSim.outErr("ERROR in converting reg num: " + Integer.toString(i));
-                return "err";
-            }
-        }
-        return str;
-    }
-
-    public String registerConvert(String str) {
-        String binaryString;
-        if (!str.substring(0, 1).equals("$")) {
-            ProcSim.outErr("ERROR in register, no '$' found: " + str);
-            return "err";
-        }
-        try {
-            if (str.equals("$zero")) {
-                binaryString = Integer.toBinaryString(0);
-            } else if (str.equals("$0")) {
-                binaryString = Integer.toBinaryString(0);
-            } else if (str.equals("$at")) {
-                binaryString = Integer.toBinaryString(1);
-            } else if (str.substring(1, 2).equals("v")) {
-                binaryString = Integer.toBinaryString(Integer.parseInt(str.substring(2, 3)) + 2);
-            } else if (str.substring(1, 2).equals("a")) {
-                binaryString = Integer.toBinaryString(Integer.parseInt(str.substring(2, 3)) + 4);
-            } else if (str.substring(1, 2).equals("t") && Integer.parseInt(str.substring(2, 3)) <= 7) {
-                binaryString = Integer.toBinaryString(Integer.parseInt(str.substring(2, 3)) + 8);
-            } else if (str.substring(1, 2).equals("s")) {
-                binaryString = Integer.toBinaryString(Integer.parseInt(str.substring(2, 3)) + 16);
-            } else if (str.substring(1, 2).equals("t")) {
-                binaryString = Integer.toBinaryString(Integer.parseInt(str.substring(2, 3)) + 16);
-            } else if (str.equals("$k0")) {
-                binaryString = Integer.toBinaryString(26);
-            } else if (str.equals("$k1")) {
-                binaryString = Integer.toBinaryString(27);
-            } else if (str.equals("$gp")) {
-                binaryString = Integer.toBinaryString(28);
-            } else if (str.equals("$sp")) {
-                binaryString = Integer.toBinaryString(29);
-            } else if (str.equals("$fp")) {
-                binaryString = Integer.toBinaryString(30);
-            } else {
-                if (!str.equals("$ra")) {
-                    ProcSim.outErr("ERROR in register, unknown register symbol: " + str);
-                    return "err";
-                }
-                binaryString = Integer.toBinaryString(31);
-            }
-            if (binaryString.length() < 5) {
-                binaryString = ProcFunc.zeroExtend(binaryString, 5);
-            }
-            return binaryString;
-        } catch (Exception e) {
-            ProcSim.outErr("ERROR in register: " + str);
-            return "err";
-        }
-    }
+		switch (regNum) {
+		case 31 : return "XZR";
+		case 30 : return "LR";
+		case 29 : return "FP";
+		case 28 : return "SP";
+		default : return "X" + regNum;
+		}
+	} 
 
     public void openAss() {
         String fileDialog = fileDialog(false, new Frame(), "Open Assembly File...", ".\\", "*.asm");

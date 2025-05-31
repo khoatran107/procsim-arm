@@ -23,6 +23,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
+
 /* loaded from: ProcSim.jar:CompFrame.class */
 class CompFrame extends JFrame implements ActionListener {
     public JTable table;

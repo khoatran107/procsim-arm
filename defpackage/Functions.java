@@ -2,6 +2,7 @@ package defpackage;
 
 import java.util.Vector;
 import javax.swing.event.TableModelEvent;
+import defpackage.instruction.Instruction;
 
 /* loaded from: ProcSim.jar:Functions.class */
 public class Functions {

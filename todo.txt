@@ -1,0 +1,5 @@
+Todo:
+sửa hàm doParse từ MIPS sang LEGv8:
++ input: toàn bộ văn bản code.
++ output:
+    + return value: valid (true) hay không valid ()
