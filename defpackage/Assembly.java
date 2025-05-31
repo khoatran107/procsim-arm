@@ -214,6 +214,7 @@ class Assembly extends TextEditor implements ActionListener {
         }
     }
 
+
     public boolean doParse() {
         this.source.lblAssem.setText("   Assembly: " + this.path);
         ProcSim.out("\n\n====Parsing Started====\n");
@@ -232,20 +233,27 @@ class Assembly extends TextEditor implements ActionListener {
 		populateBranchTable();
 		decodeInstructions();
         instr = cpuInstructions.toArray(new Instruction[0]);
+        int labelLen, mnemonicLen;
+        labelLen = mnemonicLen = 0;
         for (int i = 0; i < instr.length; i++) {
-            instr[i].str = instr[i].strNoLbl = code.get(i).getLine();
+            String currentLabel = code.get(i).getLabel();
+            String currentMnemonic = code.get(i).getMnemonic().nameUpper;
+            labelLen = Math.max(labelLen, currentLabel == null ? 0: currentLabel.length());
+            mnemonicLen = Math.max(mnemonicLen, currentMnemonic == null ? 0: currentMnemonic.length());
+        }
+
+        for (int i = 0; i < instr.length; i++) {
+            instr[i].str = instr[i].strNoLbl = code.get(i).getLinePadded(labelLen, mnemonicLen);
             instr[i].strMach = Instruction.getInstructionMachineCode(instr[i], i);
+            instr[i].comment = code.get(i).getComment();
         }
-        for (int i = 0; i < instr.length; i++) {
-            System.out.println(i + instr[i].str + " - " + instr[i].strMach);
-        }
+        this.numInstr = instr.length;
         for (int i = 0; i < compileErrors.size(); i++) {
             ProcSim.outErr(compileErrors.get(i).getMsg() + " on line " + compileErrors.get(i).getLineNumber());
         }
         return compileErrors.isEmpty();
     }
 
-    	
 	/**
 	 * For each line of source code: attempt to generate tokens and then parse.
 	 */

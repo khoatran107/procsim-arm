@@ -673,6 +673,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
     }
 
     public void showIntrMem() {
+        System.out.println("showIntrMem");
         if (this.instrMemFrame == null) {
             this.instrMemFrame = new CompFrame("Instruction Memory", 2, this);
         }

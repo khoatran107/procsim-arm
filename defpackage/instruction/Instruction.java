@@ -79,7 +79,11 @@ public class Instruction {
 			case MNEMONIC_RL:
 				return getMachineCodeRL(ins, instructionIndex);
 			case MNEMONIC_L:
-				return getMachineCodeL(ins, instructionIndex);
+				if (m == Mnemonic.B || m == Mnemonic.BL) {
+					return getMachineCodeL(ins, instructionIndex);
+				} else {
+					return getMachineCodeBCond(ins, instructionIndex);
+				}
 			default:
 				return "";
 		}
@@ -117,7 +121,7 @@ public class Instruction {
 	static String getMachineCodeRM(Instruction ins) {
 		String[] fields = new String[5];
 		fields[0] = ins.getMnemonic().opcode;
-		fields[1] = getImmBinary(ins.getArgs()[2], 12, true);
+		fields[1] = getImmBinary(ins.getArgs()[2], 9, true);
 		fields[2] = "00";
 		fields[3] = getRegBinary(ins.getArgs()[1]);
 		fields[4] = getRegBinary(ins.getArgs()[0]);
@@ -188,6 +192,35 @@ public class Instruction {
 		return immBinary;
 	}
 
+	static String getMachineCodeBCond(Instruction ins, int instructionIndex) {
+        String[] fields = new String[3];
+        fields[0] = ins.getMnemonic().opcode;
+        int offset = ins.getArgs()[0] - instructionIndex;
+        fields[1] = getImmBinary(offset, 19, true);
+        String cond_val_4bit;
+        switch (ins.getMnemonic()) {
+            case BEQ:  cond_val_4bit = "0000"; break;
+            case BNE:  cond_val_4bit = "0001"; break;
+            case BHS:  cond_val_4bit = "0010"; break;
+            case BLO:  cond_val_4bit = "0011"; break;
+            case BMI:  cond_val_4bit = "0100"; break;
+            case BPL:  cond_val_4bit = "0101"; break;
+            case BVS:  cond_val_4bit = "0110"; break;
+            case BVC:  cond_val_4bit = "0111"; break;
+            case BHI:  cond_val_4bit = "1000"; break;
+            case BLS:  cond_val_4bit = "1001"; break;
+            case BGE:  cond_val_4bit = "1010"; break;
+            case BLT:  cond_val_4bit = "1011"; break;
+            case BGT:  cond_val_4bit = "1100"; break;
+            case BLE:  cond_val_4bit = "1101"; break;
+            default:
+                System.err.println("Warning: Unhandled B.cond mnemonic in getMachineCodeBCond: " + ins.getMnemonic());
+                cond_val_4bit = "0000";
+                break;
+        }
+        fields[2] = "0" + cond_val_4bit;
+        return String.join("", fields);
+    }
 
 	private Mnemonic mnemonic;
 	private int[] args;

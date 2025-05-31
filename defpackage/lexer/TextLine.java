@@ -91,6 +91,33 @@ public class TextLine {
 	 * @return the formatted line of LEGv8 source code. If the code could not be parsed, 
 	 * it will be returned as entered.
 	 */
+
+	private String leftPad(String str, int len) {
+		return String.format("%-" + len + "s", str);
+	}
+
+	public String getLinePadded(int labelLen, int mnemonicLen) {
+		if (!parsed) {
+			return this.line;
+		}
+		String line = "";
+		if (label != null) { 
+			line += label + ":";
+		}
+		line = leftPad(line, labelLen + 1 + 2);
+		if (mnemonic != null) {
+			line += leftPad(mnemonic.nameUpper, mnemonicLen + 2);
+		}
+		if (args.size() != 0) {
+			line += formatArgs();
+		}
+		if (line.isEmpty()) {
+			return this.line;
+		}
+		return line;
+	}
+
+
 	public String getLine() {
 		if (!parsed) {
 			return this.line;
@@ -244,6 +271,10 @@ public class TextLine {
 		} else {
 			return tokens.size();
 		}
+	}
+
+	public String getComment() {
+		return comment;
 	}
 	
 	private boolean parsed = false;

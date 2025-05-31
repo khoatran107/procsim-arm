@@ -233,6 +233,7 @@ class CompFrame extends JFrame implements ActionListener {
                 }
                 this.tModel.data[i][2] = "0";
             } else if (this.instrMem) {
+                System.out.println(i);
                 this.tModel.data[i][0] = ProcFunc.slimBinary(ProcFunc.zeroExtend(Functions.toBin(i * 4), 6), true, true);
                 this.tModel.data[i][1] = Integer.toString(i * 4);
                 this.tModel.data[i][2] = this.viewSim.sim.source.assembly.instr[i].str;

@@ -55,7 +55,7 @@ public enum Mnemonic {
 	BPL("B.PL", "b.pl", TokenType.MNEMONIC_L, "01010100", null),
 	BVS("B.VS", "b.vs", TokenType.MNEMONIC_L, "01010100", null),
 	BVC("B.VC", "b.vc", TokenType.MNEMONIC_L, "01010100", null),
-	B("B", "b", TokenType.MNEMONIC_L, "00101", null),
+	B("B", "b", TokenType.MNEMONIC_L, "000101", null),
 	BR("BR", "br", TokenType.MNEMONIC_R, "11010110000", null),
 	BL("BL", "bl", TokenType.MNEMONIC_L, "100101", null), 
 	CMP("CMP", "cmp", TokenType.MNEMONIC_RR, null, null),
