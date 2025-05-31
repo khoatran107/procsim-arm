@@ -26,7 +26,6 @@ import defpackage.instruction.Mnemonic;
 /* loaded from: ProcSim.jar:Assembly.class */
 class Assembly extends TextEditor implements ActionListener {
     Button butAssemble;
-    int numInstr;
     String[][] directives;
     int numDirects;
     Vector<String> supportedISA;
@@ -37,6 +36,9 @@ class Assembly extends TextEditor implements ActionListener {
     HashMap<String, Integer> branchTable;
     ArrayList<Instruction> cpuInstructions;
     Instruction[] instr;
+    int numInstr;
+    ArrayList<Integer> realInstr; // the instruction lines that aren't only label, this is to find the i-th real instruction's line index 
+    int numRealInstr;
 
     public Assembly(ProcSim procSim) {
         super(procSim, "Assembly/Machine Code");
@@ -230,11 +232,14 @@ class Assembly extends TextEditor implements ActionListener {
         branchTable = new HashMap<String, Integer>();
 		cpuInstructions = new ArrayList<Instruction>();
 		compileErrors = new ArrayList<Error>();
+        this.realInstr = new ArrayList<Integer>();
+        this.numRealInstr = 0;
         parseCode();
 		populateBranchTable();
 		decodeInstructions();
         instr = cpuInstructions.toArray(new Instruction[0]);
         this.numInstr = instr.length;
+        this.numRealInstr = realInstr.size();
         int labelLen, mnemonicLen;
         labelLen = mnemonicLen = 0;
         for (int i = 0; i < this.numInstr; i++) {
@@ -245,10 +250,9 @@ class Assembly extends TextEditor implements ActionListener {
         }
 
         for (int i = 0; i < this.numInstr; i++) {
-            instr[i].str = instr[i].strNoLbl = code.get(i).getLinePadded(labelLen, mnemonicLen);
-            if (!instr[i].isEmpty()) {
-                instr[i].strMach = Instruction.getInstructionMachineCode(instr[i], i);
-            }
+            instr[i].str = code.get(i).getLinePadded(labelLen, mnemonicLen);
+            instr[i].strNoLbl = code.get(i).getLineNoLabel();
+            instr[i].strMach = Instruction.getInstructionMachineCode(instr[i], i);
             instr[i].comment = code.get(i).getComment();
         }
         for (int i = 0; i < compileErrors.size(); i++) {
@@ -311,6 +315,8 @@ class Assembly extends TextEditor implements ActionListener {
 				try {
 					cpuInstructions.add(Decoder.getInstruction(
 							line.getMnemonic(), line.getArgs(), i, branchTable));
+                    cpuInstructions.getLast().realInstrIdx = this.realInstr.size();
+                    this.realInstr.add(i);
 				} catch (UndefinedLabelException ule) {
 					compileErrors.add(new Error(ule.getMessage(), i));
 				} catch (ImmediateOutOfBoundsException ioobe) {

@@ -1,5 +1,6 @@
 package defpackage.instruction;
 
+import defpackage.cpu.CPU;
 import defpackage.cpu.ControlUnitConfiguration;
 
 /**
@@ -69,6 +70,7 @@ public class Instruction {
 	}
 	
 	public static String getInstructionMachineCode(Instruction ins, int instructionIndex) {
+		if (ins.isEmpty()) return "";
 		Mnemonic m = ins.getMnemonic();
 		switch (m.type) {
 			case MNEMONIC_RRR:
@@ -242,4 +244,6 @@ public class Instruction {
     public String instr = "";
 	public String str;
 	public String comment;
+
+	public int realInstrIdx = -1;
 }

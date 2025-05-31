@@ -251,12 +251,20 @@ public class Functions {
                 break;
             case OP_GETINSTR /* 13 */:
                 ProcSim.outLine("Getting instruction ");
+                int instrIdx = i3 / 4;
+                if (instrIdx >= sim.source.assembly.numRealInstr) {
+                    ProcSim.out("Found end of instructions - stopping execution");
+                    strArr[0][0] = "0";
+                    strArr[0][1] = "Exit";
+                    break;
+                }
+                int lineIdx = sim.source.assembly.realInstr.get(instrIdx);
                 if (sim.source.assembly.numInstr == 0) {
                     ProcSim.outErr("No instructions found! - stopping execution");
                     strArr[0][0] = "0";
                     strArr[0][1] = "Exit";
                     break;
-                } else if (sim.source.assembly.instr == null || sim.source.assembly.instr[i3 / 4] == null) {
+                } else if (sim.source.assembly.instr == null || sim.source.assembly.instr[lineIdx] == null) {
                     ProcSim.outErr("Error 11: cannot find the requested instruction from instruction memory at address: " + Integer.toString(i3));
                     break;
                 } else {
@@ -265,18 +273,11 @@ public class Functions {
                         sim.source.viewSim.instrMemFrame.tModel.fireTableChanged(new TableModelEvent(sim.source.viewSim.instrMemFrame.tModel));
                         Thread thread = sim.source.diagCanvas.animThread.t;
                         Thread.yield();
-                        sim.source.viewSim.instrMemFrame.yourLabel.setText(sim.source.assembly.instr[i3 / 4].comment);
+                        sim.source.viewSim.instrMemFrame.yourLabel.setText(sim.source.assembly.instr[lineIdx].comment);
                     }
-                    if (i3 / 4 > sim.source.assembly.numInstr) {
-                        ProcSim.out("Found end of instructions - stopping execution");
-                        strArr[0][0] = "0";
-                        strArr[0][1] = "Exit";
-                        break;
-                    } else {
-                        strArr[0][0] = sim.source.assembly.instr[i3 / 4].strMach;
-                        strArr[0][1] = sim.source.assembly.instr[i3 / 4].strNoLbl;
-                        break;
-                    }
+                    strArr[0][0] = sim.source.assembly.instr[lineIdx].strMach;
+                    strArr[0][1] = sim.source.assembly.instr[lineIdx].strNoLbl;
+                    break;
                 }
                 // break;
             case OP_SHIFTLEFT /* 14 */:

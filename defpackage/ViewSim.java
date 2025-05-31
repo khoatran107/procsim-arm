@@ -31,6 +31,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 
+import defpackage.instruction.Instruction;
+
 /* loaded from: ProcSim.jar:ViewSim.class */
 class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListener {
     Simulator sim;
@@ -501,18 +503,17 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
                 this.instrMemFrame.setWidths();
             }
             this.instrMemFrame.showMachineOld = this.instrMemFrame.showMachine;
-            int realInstructionIndex = 0;
             for (int i9 = 0; i9 < this.instrMemFrame.MAX_VALS; i9++) {
+                Instruction currentInstruction = this.sim.source.assembly.instr[i9];
                 if (!this.sim.source.assembly.instr[i9].isEmpty()) {
-                    this.instrMemFrame.tModel.data[i9][0] = ProcFunc.slimBinary(ProcFunc.zeroExtend(Functions.toBin(realInstructionIndex * 4), 6), true, true);
-                    this.instrMemFrame.tModel.data[i9][1] = Integer.toString(realInstructionIndex * 4);
-                    realInstructionIndex++;
+                    this.instrMemFrame.tModel.data[i9][0] = ProcFunc.slimBinary(ProcFunc.zeroExtend(Functions.toBin(currentInstruction.realInstrIdx * 4), 6), true, true);
+                    this.instrMemFrame.tModel.data[i9][1] = Integer.toString(currentInstruction.realInstrIdx * 4);
                 }
-                this.instrMemFrame.tModel.data[i9][3] = this.sim.source.assembly.instr[i9].comment;
+                this.instrMemFrame.tModel.data[i9][3] = currentInstruction.comment;
                 if (this.instrMemFrame.showMachine) {
-                    this.instrMemFrame.tModel.data[i9][2] = this.sim.source.assembly.instr[i9].strMach;
+                    this.instrMemFrame.tModel.data[i9][2] = currentInstruction.strMach;
                 } else {
-                    this.instrMemFrame.tModel.data[i9][2] = this.sim.source.assembly.instr[i9].str;
+                    this.instrMemFrame.tModel.data[i9][2] = currentInstruction.str;
                 }
             }
             this.instrMemFrame.tModel.fireTableChanged(new TableModelEvent(this.instrMemFrame.tModel));

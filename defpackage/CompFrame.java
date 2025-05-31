@@ -330,7 +330,7 @@ class CompFrame extends JFrame implements ActionListener {
                 tableCellRendererComponent.setBackground(new Color(255, 255, 204));
                 z3 = true;
             }
-            if (CompFrame.this.instrMem && CompFrame.this.viewSim.sim.execInstr == i) {
+            if (CompFrame.this.instrMem && CompFrame.this.viewSim.sim.source.assembly.realInstr.get(CompFrame.this.viewSim.sim.execInstr) == i) {
                 tableCellRendererComponent.setBackground(new Color(153, 255, 204));
                 z3 = true;
             }

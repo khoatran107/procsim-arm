@@ -93,6 +93,7 @@ public class TextLine {
 	 */
 
 	private String leftPad(String str, int len) {
+		if (len == 0) return str;
 		return String.format("%-" + len + "s", str);
 	}
 
@@ -104,9 +105,26 @@ public class TextLine {
 		if (label != null) { 
 			line += label + ":";
 		}
-		line = leftPad(line, labelLen + 1 + 2);
+		line = leftPad(line, labelLen == 0 ? 0: labelLen + 1 + 2);
 		if (mnemonic != null) {
 			line += leftPad(mnemonic.nameUpper, mnemonicLen + 2);
+		}
+		if (args.size() != 0) {
+			line += formatArgs();
+		}
+		if (line.isEmpty()) {
+			return this.line;
+		}
+		return line;
+	}
+
+	public String getLineNoLabel() {
+		if (!parsed) {
+			return this.line;
+		}
+		String line = "";
+		if (mnemonic != null) {
+			line += mnemonic.nameUpper + "  ";
 		}
 		if (args.size() != 0) {
 			line += formatArgs();
