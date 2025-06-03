@@ -57,8 +57,8 @@ class ProcFunc {
         if (str2.length() == i) {
             return str2;
         }
-        if (str2.length() == 32) {
-            return str2.substring(32 - i, 32);
+        if (str2.length() == 64) {
+            return str2.substring(64 - i, 64);
         }
         if (str2.length() == 0 || str2.substring(0, 1).equals("0")) {
             for (int i2 = 0; i2 < i - str.length(); i2++) {

@@ -115,7 +115,7 @@
 						<out name="zero"/>
 					</outputs>
 				</do>
-			</op>			
+			</op>
 		</operations>
 	</Component>
 	<Component>
@@ -873,7 +873,7 @@
 		<outputBuses>
 			<output name="Addr32bits" bits="32" alternativeStr="true">
 				<to name="Addr" comp="ShiftLeft"/>
-				<to name="in1Const" comp="Mux4"/>				
+				<to name="in1Const" comp="Mux4"/>
 			</output>
 		</outputBuses>
 		<inputBuses>

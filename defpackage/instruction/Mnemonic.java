@@ -9,38 +9,57 @@ import defpackage.lexer.TokenType;
  * @author Jonathan Wright, 2016
  */
 public enum Mnemonic {
+	// Arithmetic registers
 	ADD("ADD", "add", TokenType.MNEMONIC_RRR, "10001011000", "0010"),
 	ADDS("ADDS", "adds", TokenType.MNEMONIC_RRR, "10101011000", "0010"),
-	ADDI("ADDI", "addi", TokenType.MNEMONIC_RRI, "1001000100", "0010"),
-	ADDIS("ADDIS", "addis", TokenType.MNEMONIC_RRI, "1011000100", "0010"),
 	SUB("SUB", "sub", TokenType.MNEMONIC_RRR, "11001011000", "0110"),
 	SUBS("SUBS", "subs", TokenType.MNEMONIC_RRR, "11101011000", "0110"),
+	CMP("CMP", "cmp", TokenType.MNEMONIC_RR, null, null),
+
+	// Arithmetic Immediate
+	ADDI("ADDI", "addi", TokenType.MNEMONIC_RRI, "1001000100", "0010"),
+	ADDIS("ADDIS", "addis", TokenType.MNEMONIC_RRI, "1011000100", "0010"),
 	SUBI("SUBI", "subi", TokenType.MNEMONIC_RRI, "1101000100", "0110"),
 	SUBIS("SUBIS", "subis", TokenType.MNEMONIC_RRI, "1111000100", "0110"),
+	CMPI("CMPI", "cmpi", TokenType.MNEMONIC_RI, null, null),
+	
+	// Logical Register
 	AND("AND", "and", TokenType.MNEMONIC_RRR, "10001010000", "0000"),
 	ANDS("ANDS", "ands", TokenType.MNEMONIC_RRR, "11101010000", "0000"),
+	ORR("ORR", "orr", TokenType.MNEMONIC_RRR, "10101010000", "0001"),
+	EOR("EOR", "eor", TokenType.MNEMONIC_RRR, "11001010000", "1011"),
+
+	// Logical Immediate
 	ANDI("ANDI", "andi", TokenType.MNEMONIC_RRI, "1001001000", "0000"),
 	ANDIS("ANDIS", "andis", TokenType.MNEMONIC_RRI, "1111001000", "0000"),
-	ORR("ORR", "orr", TokenType.MNEMONIC_RRR, "10101010000", "0001"),
 	ORRI("ORRI", "orri", TokenType.MNEMONIC_RRI, "1011001000", "0001"),
-	EOR("EOR", "eor", TokenType.MNEMONIC_RRR, "11001010000", "1011"),
 	EORI("EORI", "eori", TokenType.MNEMONIC_RRI, "1101001000", "1011"),
+
+	// Shift Immediate
 	LSL("LSL", "lsl", TokenType.MNEMONIC_RRI, "11010011011", "1101"),
 	LSR("LSR", "lsr", TokenType.MNEMONIC_RRI, "11010011010", "1110"),
-	LDUR("LDUR", "ldur", TokenType.MNEMONIC_RM, "11111000010", "0010"),
-	STUR("STUR", "stur", TokenType.MNEMONIC_RM, "11111000000", "0010"),
-	LDURSW("LDURSW", "ldursw", TokenType.MNEMONIC_RM, "10111000100", "0010"),
-	STURW("STURW", "sturw", TokenType.MNEMONIC_RM, "10111000000", "0010"),
-	LDURH("LDURH", "ldurh", TokenType.MNEMONIC_RM, "01111000010", "0010"),
-	STURH("STURH", "sturh", TokenType.MNEMONIC_RM, "01111000000", "0010"),
-	LDURB("LDURB", "ldurb", TokenType.MNEMONIC_RM, "00111000010", "0010"),
-	STURB("STURB", "sturb", TokenType.MNEMONIC_RM, "00111000000", "0010"),
-	LDXR("LDXR", "ldxr", TokenType.MNEMONIC_RM, "11001000010", "0010"),
-	STXR("STXR", "stxr", TokenType.MNEMONIC_RRM, "11001000000", "0010"),
+
+	// Move Wide Immediate
 	MOVZ("MOVZ", "movz", TokenType.MNEMONIC_RISI, "110100101", "0001"),
 	MOVK("MOVK", "movk", TokenType.MNEMONIC_RISI, "111100101", "0001"),
-	CBZ("CBZ", "cbz", TokenType.MNEMONIC_RL, "10110100", "0111"),
-	CBNZ("CBNZ", "cbnz", TokenType.MNEMONIC_RL, "10110101", "0111"),
+	MOV("MOV", "mov", TokenType.MNEMONIC_RR, null, null),
+	
+	// Load/Store Unscaled
+	LDUR("LDUR", "ldur", TokenType.MNEMONIC_RM, "11111000010", "0010"),
+	LDURB("LDURB", "ldurb", TokenType.MNEMONIC_RM, "00111000010", "0010"),
+	LDURH("LDURH", "ldurh", TokenType.MNEMONIC_RM, "01111000010", "0010"),
+	LDURSW("LDURSW", "ldursw", TokenType.MNEMONIC_RM, "10111000100", "0010"),
+	STUR("STUR", "stur", TokenType.MNEMONIC_RM, "11111000000", "0010"),
+	STURB("STURB", "sturb", TokenType.MNEMONIC_RM, "00111000000", "0010"),
+	STURH("STURH", "sturh", TokenType.MNEMONIC_RM, "01111000000", "0010"),
+	STURW("STURW", "sturw", TokenType.MNEMONIC_RM, "10111000000", "0010"),
+	// LDA missing
+	
+	// Load/Store Exclusive
+	LDXR("LDXR", "ldxr", TokenType.MNEMONIC_RM, "11001000010", "0010"),
+	STXR("STXR", "stxr", TokenType.MNEMONIC_RRM, "11001000000", "0010"),
+	
+	// Conditional Branch
 	BEQ("B.EQ", "b.eq", TokenType.MNEMONIC_L, "01010100", null),
 	BNE("B.NE", "b.ne", TokenType.MNEMONIC_L, "01010100", null),
 	BHS("B.HS", "b.hs", TokenType.MNEMONIC_L, "01010100", null),
@@ -55,12 +74,13 @@ public enum Mnemonic {
 	BPL("B.PL", "b.pl", TokenType.MNEMONIC_L, "01010100", null),
 	BVS("B.VS", "b.vs", TokenType.MNEMONIC_L, "01010100", null),
 	BVC("B.VC", "b.vc", TokenType.MNEMONIC_L, "01010100", null),
+	CBNZ("CBNZ", "cbnz", TokenType.MNEMONIC_RL, "10110101", "0111"),
+	CBZ("CBZ", "cbz", TokenType.MNEMONIC_RL, "10110100", "0111"),
+	
+	// Unconditional Branch
 	B("B", "b", TokenType.MNEMONIC_L, "000101", null),
 	BR("BR", "br", TokenType.MNEMONIC_R, "11010110000", null),
-	BL("BL", "bl", TokenType.MNEMONIC_L, "100101", null), 
-	CMP("CMP", "cmp", TokenType.MNEMONIC_RR, null, null),
-	CMPI("CMPI", "cmpi", TokenType.MNEMONIC_RI, null, null),
-	MOV("MOV", "mov", TokenType.MNEMONIC_RR, null, null);
+	BL("BL", "bl", TokenType.MNEMONIC_L, "100101", null);
 	
 	/**
 	 * @param nameUpper			lower case string representation of the instruction mnemonic 

@@ -25,10 +25,19 @@ public class InputCheck {
             return true;
         }
         for (int i = 0; i < 10; i++) {
-            if (this.input.binaryValue.equals(this.checkagainst) && !this.checkagainst.equals("error")) {
+            if (checkSpecialWithX(this.input.binaryValue, this.checkagainst) && !this.checkagainst.equals("error")) {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean checkSpecialWithX(String binaryValue, String checkAgainst) {
+        if (binaryValue.length() != checkAgainst.length()) return false;
+        int n = binaryValue.length();
+        for (int i = 0; i < n; i++) {
+            if (checkAgainst.charAt(i) != 'x' && binaryValue.charAt(i) != checkAgainst.charAt(i)) return false;
+        }
+        return true;
     }
 }

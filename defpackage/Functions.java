@@ -29,12 +29,12 @@ public class Functions {
     Functions() {
     }
 
-    public static String toBin(int i) {
-        String binaryString = Integer.toBinaryString(i);
-        if (binaryString.length() == 32) {
+    public static String toBin(long i) {
+        String binaryString = Long.toBinaryString(i);
+        if (binaryString.length() == 64) {
             return binaryString;
         }
-        return ProcFunc.zeroExtend(binaryString, 32);
+        return ProcFunc.zeroExtend(binaryString, 64);
     }
 
     public static String toDec(String str, boolean z) {
@@ -42,7 +42,7 @@ public class Functions {
             str = "0";
         }
         if (str.substring(0, 1).equals("0")) {
-            return Integer.toString(Integer.parseInt(str, 2));
+            return Long.toString(Long.parseLong(str, 2));
         }
         if (z) {
             String str2 = "";
@@ -57,13 +57,13 @@ public class Functions {
                     z2 = true;
                 }
             }
-            return Integer.toString(-Integer.parseInt(str2, 2));
+            return Long.toString(-Long.parseLong(str2, 2));
         }
         try {
             if (str.equals("")) {
                 str = "0";
             }
-            return Integer.toString(Integer.parseInt(str, 2));
+            return Long.toString(Long.parseLong(str, 2));
         } catch (Exception e) {
             ProcSim.outErr("Error: Cannot convert bin to dec: " + str);
             return "0";
@@ -76,11 +76,11 @@ public class Functions {
                 if (str.equals("")) {
                     str = "0";
                 }
-                return Integer.toString(Integer.parseInt(str, 2));
+                return Long.toString(Long.parseLong(str, 2));
             } catch (Exception e) {
             }
         } else if (str.substring(0, 1).equals("0")) {
-            return Integer.toString(Integer.parseInt(str, 2));
+            return Long.toString(Long.parseLong(str, 2));
         }
         String str2 = "";
         boolean z = false;
@@ -94,7 +94,7 @@ public class Functions {
                 z = true;
             }
         }
-        return Integer.toString(-Integer.parseInt(str2, 2));
+        return Long.toString(-Long.parseLong(str2, 2));
     }
 
     private static boolean checkAllowFunc(ProcBus procBus) {
@@ -114,7 +114,7 @@ public class Functions {
         return z;
     }
 
-    public static String[][] doOp(int i, Vector<ProcBus> vector, Vector<ProcBus> vector2, String str) {
+    public static String[][] doOp(int i, Vector<ProcBus> vector, Vector<ProcBus> vector2, String out) {
         String[][] strArr = new String[20][2];
         for (int i2 = 0; i2 < 20; i2++) {
             strArr[i2][0] = "Error";
@@ -122,25 +122,25 @@ public class Functions {
         }
         String str2 = "";
         String str3 = "";
-        int i3 = 0;
-        int i4 = 0;
+        long i3 = 0;
+        long i4 = 0;
         if (vector != null) {
             if (vector.size() >= 1) {
                 str2 = vector.get(0).binaryValue;
-                i3 = Integer.parseInt(toDec(str2));
+                i3 = Long.parseLong(toDec(str2));
                 if (!checkAllowFunc(vector.get(0))) {
                     return strArr;
                 }
             }
             if (vector.size() >= 2) {
                 str3 = vector.get(1).binaryValue;
-                i4 = Integer.parseInt(toDec(str3));
+                i4 = Long.parseLong(toDec(str3));
                 if (!checkAllowFunc(vector.get(1))) {
                     return strArr;
                 }
             }
             if (vector.size() >= 3) {
-                Integer.parseInt(toDec(vector.get(2).binaryValue));
+                Long.parseLong(toDec(vector.get(2).binaryValue));
                 if (!checkAllowFunc(vector.get(2))) {
                     return strArr;
                 }
@@ -178,61 +178,61 @@ public class Functions {
                 break;
             case OP_READMEM /* 6 */:
                 ProcSim.outLine("Reading from mem ");
-                strArr[0][0] = sim.getWordMem(i3);
+                strArr[0][0] = sim.getDoubleWordMem(i3);
                 break;
             case OP_WRITEMEM /* 7 */:
                 ProcSim.outLine("Writing to mem ");
-                sim.setWordMem(i3, str3);
+                sim.setDoubleWordMem(i3, str3);
                 break;
             case OP_OUT /* 8 */:
                 ProcSim.outLine("Outputing bin string ");
-                if (str == null) {
-                    str = "0";
+                if (out == null) {
+                    out = "0";
                     ProcSim.outErr("Error: OutString not set in func 'out'");
                 }
                 for (int i5 = 0; i5 < size; i5++) {
-                    strArr[i5][0] = ProcFunc.zeroExtend(str, vector2.get(0).bits);
+                    strArr[i5][0] = ProcFunc.zeroExtend(out, vector2.get(0).bits);
                 }
                 break;
             case OP_BITOUT /* 9 */:
                 ProcSim.outLine("Outputing bit string ");
-                if (str == null) {
-                    str = ProcFunc.zeroExtend("0", size);
+                if (out == null) {
+                    out = ProcFunc.zeroExtend("0", size);
                     ProcSim.outErr("Error: OutString not set in func 'bitout'");
                 }
-                if (vector2.size() > str.length()) {
-                    str = ProcFunc.zeroExtend(str, size);
+                if (vector2.size() > out.length()) {
+                    out = ProcFunc.zeroExtend(out, size);
                     ProcSim.outErr("Error: OutString does not have enough bits to fill all buses in func 'bitout'");
                 }
                 int i6 = 0;
                 for (int i7 = 0; i7 < size; i7++) {
                     int i8 = vector2.get(i7).bits;
-                    strArr[i7][0] = str.substring(i6, i6 + i8);
+                    strArr[i7][0] = out.substring(i6, i6 + i8);
                     i6 += i8;
                 }
                 break;
             case OP_SPLIT /* 10 */:
                 ProcSim.outLine("Split ");
-                if (str == null) {
-                    str = "31-0";
+                if (out == null) {
+                    out = "31-0";
                     ProcSim.outErr("Error: OutString not set in func 'split'");
                 }
-                int indexOf = str.indexOf("-");
+                int indexOf = out.indexOf("-");
                 if (indexOf < 0) {
-                    ProcSim.outErr("Error 10 in outstring in func 'split', (should be e.g. '31-26') - " + str);
+                    ProcSim.outErr("Error 10 in outstring in func 'split', (should be e.g. '31-26') - " + out);
                     break;
                 } else {
                     int length = str2.length() - 1;
-                    int parseInt = length - Integer.parseInt(str.substring(indexOf + 1, str.length()));
-                    int parseInt2 = length - Integer.parseInt(str.substring(0, indexOf));
+                    int parseInt = length - Integer.parseInt(out.substring(indexOf + 1, out.length()));
+                    int parseInt2 = length - Integer.parseInt(out.substring(0, indexOf));
                     if (parseInt2 > parseInt) {
-                        ProcSim.outErr("Error in outstring in func 'split', (should be e.g. '31-26') - " + str);
+                        ProcSim.outErr("Error in outstring in func 'split', (should be e.g. '31-26') - " + out);
                         break;
                     } else if (parseInt > str2.length()) {
-                        ProcSim.outErr("Error in outstring in func 'split', split value is bigger than input value - " + str);
+                        ProcSim.outErr("Error in outstring in func 'split', split value is bigger than input value - " + out);
                         break;
                     } else if (parseInt2 < 0 || parseInt < 0) {
-                        ProcSim.outErr("Error in outstring in func 'split', split value is smaller than zero - " + str);
+                        ProcSim.outErr("Error in outstring in func 'split', split value is smaller than zero - " + out);
                         break;
                     } else {
                         strArr[0][0] = str2.substring(parseInt2, parseInt + 1);
@@ -241,17 +241,17 @@ public class Functions {
                 }
                 // break;
             case OP_READREG /* 11 */:
-                strArr[0][0] = sim.registers[i3];
+                strArr[0][0] = sim.registers[(int)i3];
                 ProcSim.outLine("Read reg ");
                 break;
             case OP_WRITEREG /* 12 */:
-                sim.registers[i3] = str3;
+                sim.registers[(int)i3] = str3;
                 ProcSim.outLine("Wrote Reg ");
                 sim.lastChangedReg = str2;
                 break;
             case OP_GETINSTR /* 13 */:
                 ProcSim.outLine("Getting instruction ");
-                int instrIdx = i3 / 4;
+                int instrIdx = (int)i3 / 4;
                 if (instrIdx >= sim.source.assembly.numRealInstr) {
                     ProcSim.out("Found end of instructions - stopping execution");
                     strArr[0][0] = "0";
@@ -265,10 +265,10 @@ public class Functions {
                     strArr[0][1] = "Exit";
                     break;
                 } else if (sim.source.assembly.instr == null || sim.source.assembly.instr[lineIdx] == null) {
-                    ProcSim.outErr("Error 11: cannot find the requested instruction from instruction memory at address: " + Integer.toString(i3));
+                    ProcSim.outErr("Error 11: cannot find the requested instruction from instruction memory at address: " + Long.toString(i3));
                     break;
                 } else {
-                    sim.execInstr = i3 / 4;
+                    sim.execInstr = (int)i3 / 4;
                     if (sim.source.viewSim.instrMemFrame != null && sim.source.viewSim.instrMemFrame.isVisible()) {
                         sim.source.viewSim.instrMemFrame.tModel.fireTableChanged(new TableModelEvent(sim.source.viewSim.instrMemFrame.tModel));
                         Thread thread = sim.source.diagCanvas.animThread.t;
@@ -282,23 +282,18 @@ public class Functions {
                 // break;
             case OP_SHIFTLEFT /* 14 */:
                 ProcSim.outLine("Shiftleft ");
-                if (str == null) {
-                    str = "0";
+                if (out == null) {
+                    out = "0";
                     ProcSim.outErr("Error: OutString not set in func 'shiftleft'");
                 }
-                strArr[0][0] = shiftLeft(str2, Integer.parseInt(str));
+                strArr[0][0] = shiftLeft(str2, Integer.parseInt(out));
                 break;
             case OP_SIGNEXTEND /* 15 */:
                 ProcSim.outLine("Sign extend ");
-                strArr[0][0] = ProcFunc.signExtend(str2, Integer.parseInt(str));
+                strArr[0][0] = ProcFunc.signExtend(str2, Integer.parseInt(out));
                 break;
             case OP_SLT /* 16 */:
-                if (i3 < i4) {
-                    strArr[0][0] = ProcFunc.zeroExtend("1", 32);
-                } else {
-                    strArr[0][0] = ProcFunc.zeroExtend("0", 32);
-                }
-                strArr[1][0] = "0";
+                // EMPTY
                 ProcSim.outLine("SLT operation ");
                 break;
             case OP_JOIN /* 17 */:
@@ -324,7 +319,7 @@ public class Functions {
     }
 
     private static String checkZero(String str) {
-        return Integer.parseInt(toDec(str)) == 0 ? "1" : "0";
+        return Long.parseLong(toDec(str)) == 0 ? "1" : "0";
     }
 
     public static String toString(int i) {
@@ -366,7 +361,7 @@ public class Functions {
             case OP_JOIN /* 17 */:
                 return "join";
             default:
-                return Integer.toString(i);
+                return Long.toString(i);
         }
     }
 

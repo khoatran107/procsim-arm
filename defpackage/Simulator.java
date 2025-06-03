@@ -38,12 +38,31 @@ class Simulator {
             this.registers[i2] = "";
         }
     }
+    
+    public String getDoubleWordMem(long address) {
+        int i = (int)address;
+        StringBuilder result = new StringBuilder();
+        for (int j = 0; j < 8; j++) {
+            result.append(ProcFunc.signExtend(this.mainMemory[i + j], 8));
+        }
+        return result.toString();
+    }
+    
+    public void setDoubleWordMem(long address, String str) {
+        int i = (int)address;
+        for (int j = 0; j < 8; j++) {
+            this.mainMemory[i + j] = str.substring(j * 8, (j + 1) * 8);
+        }
+        this.lastChangedMem = i;
+    }
 
-    public String getWordMem(int i) {
+    public String getWordMem(long address) {
+        int i = (int)address;
         return ProcFunc.signExtend(this.mainMemory[i], 8) + ProcFunc.signExtend(this.mainMemory[i + 1], 8) + ProcFunc.signExtend(this.mainMemory[i + 2], 8) + ProcFunc.signExtend(this.mainMemory[i + 3], 8);
     }
 
-    public void setWordMem(int i, String str) {
+    public void setWordMem(long address, String str) {
+        int i = (int)address;
         this.mainMemory[i] = str.substring(0, 8);
         this.mainMemory[i + 1] = str.substring(8, 16);
         this.mainMemory[i + 2] = str.substring(16, 24);

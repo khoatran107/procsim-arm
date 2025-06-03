@@ -15,7 +15,7 @@
 			</output>
 		</outputBuses>
 		<inputBuses>
-			<input name="PC Address" bits="32"/>
+			<input name="PC Address" bits="64"/>
 		</inputBuses>
 		<operations>
 			<op name="ReadAddress">
@@ -38,13 +38,13 @@
 		<description>Progam Counter</description>
 		<specialComponent comp="StartComp"/>
 		<outputBuses>
-			<output name="PC" bits="32" alternativeStr="true">
+			<output name="PC" bits="64" alternativeStr="true">
 				<to name="PC" comp="Increment PC"/>
 				<to name="PC Address" comp="Instruction Memory"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
-			<input name="New PC" bits="32"/>
+			<input name="New PC" bits="64"/>
 		</inputBuses>
 		<operations>
 			<op name="pc do nothing">
@@ -66,7 +66,7 @@
 		<description>For incrementing PC by 4</description>
 		<hidden>true</hidden>
 		<outputBuses>
-			<output name="out4" bits="32" alternativeStr="true">
+			<output name="out4" bits="64" alternativeStr="true">
 				<to name="Val 4" comp="Increment PC"/>
 			</output>
 		</outputBuses>
@@ -86,13 +86,13 @@
 		<name>Increment PC</name>
 		<description>Increment PC ALU</description>
 		<outputBuses>
-			<output name="PC+4" bits="32" alternativeStr="true">
+			<output name="PC+4" bits="64" alternativeStr="true">
 				<to name="New PC" comp="PC"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
-			<input name="Val 4" bits="32"/>
-			<input name="PC" bits="32"/>			
+			<input name="Val 4" bits="64"/>
+			<input name="PC" bits="64"/>			
 		</inputBuses>
 		<operations>
 			<op name="increm4">
