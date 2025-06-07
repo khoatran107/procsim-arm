@@ -170,10 +170,12 @@ public class Functions {
                 break;
             case OP_ZERO /* 4 */:
                 strArr[0][0] = checkZero(str2);
+                System.out.println(strArr[0][0]);
                 ProcSim.outLine("Zero operation ");
                 break;
             case OP_MUX /* 5 */:
                 strArr[0][0] = str2;
+                System.out.println(strArr[0][0]);
                 ProcSim.outLine("Mux operation ");
                 break;
             case OP_READMEM /* 6 */:

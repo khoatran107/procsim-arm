@@ -784,6 +784,7 @@
 					</outputs>
 				</do>
 			</op>
+
 			<op name="pass-input-b">
 				<dependsOn which="ALUOp" if="0111"/>
 				<do func="mux">
@@ -794,6 +795,9 @@
 						<out name="result"/>
 					</outputs>
 				</do>
+			</op>
+			<op name="pass-input-b-zero">
+				<dependsOn which="ALUOp" if="0111"/>
 				<do func="zero">
 					<inputs>
 						<in name="ALUInp2"/>
@@ -803,6 +807,7 @@
 					</outputs>
 				</do>
 			</op>
+			
 		</operations>
 	</Component>
 
