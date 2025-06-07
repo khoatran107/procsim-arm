@@ -81,8 +81,8 @@
 				<to name="ReadReg2_2" comp="Mux1"/>
 				<to name="WriteReg" comp="Registers"/>
 			</output>
-			<output name="Addr" bits="32">
-				<to name="Addr32bits" comp="SExtend"/>
+			<output name="InstructionToSExtend" bits="32">
+				<to name="InstructionToSExtend" comp="SExtend"/>
 			</output>
 			<output name="OpcodeALUControl" bits="11">
 				<to name="Opcode" comp="ALUControl"/>
@@ -143,7 +143,7 @@
 						<in name="Instr"/>
 					</inputs>
 					<outputs>
-						<out name="Addr"/>
+						<out name="InstructionToSExtend"/>
 					</outputs>
 				</do>
 			</op>
@@ -380,35 +380,267 @@
 			</op>
 		</operations>
 	</Component>
+
+	<!-- Sign extend module begin -->
 	
 	<Component>
 		<name>SExtend</name>
-		<description>Sign Extend</description>
+		<description>Split Data for Sign Extend</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="Addr64bits" bits="64" alternativeStr="true">
-				<to name="Addr" comp="ShiftLeft"/>
-				<to name="in1Const" comp="Mux4"/>				
+
+			<!-- DATA INPUT FOR SIGN EXTEND SUB-MODULES -->
+			<output name="BSignExtendRawInput" bits="26">
+				<to name="input" comp="BSignExtend"/>
+			</output>
+			<output name="CBZSignExtendRawInput" bits="19">
+				<to name="input" comp="CBZSignExtend"/>
+			</output>
+			<output name="LoadStoreSignExtendRawInput" bits="9">
+				<to name="input" comp="LoadStoreSignExtend"/>
+			</output>
+
+			<!-- SELECT INPUT FOR SIGN EXTEND MUXES -->
+			<output name="B_CBZ_Select" bits="1">
+				<to name="selectInput" comp="B_CBZ_Mux"/>
+			</output>
+			<output name="Branch_LoadStore_Select" bits="1">
+				<to name="selectInput" comp="Branch_LoadStore_Mux"/>
+			</output>
+
+		</outputBuses>
+		<inputBuses>
+			<input name="InstructionToSExtend" bits="32"/>
+		</inputBuses>
+		<operations>
+			<op name="SplitBSignExtend">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="25-0">
+					<inputs>
+						<in name="InstructionToSExtend"/>
+					</inputs>
+					<outputs>
+						<out name="BSignExtendRawInput"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="SplitCBZSignExtend">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="23-5">
+					<inputs>
+						<in name="InstructionToSExtend"/>
+					</inputs>
+					<outputs>
+						<out name="CBZSignExtendRawInput"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="SplitLoadStoreSignExtend">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="20-12">
+					<inputs>
+						<in name="InstructionToSExtend"/>
+					</inputs>
+					<outputs>
+						<out name="LoadStoreSignExtendRawInput"/>
+					</outputs>
+				</do>
+			</op>
+
+			<!-- select input -->
+			<op name="Split_B_CBZ_Select">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="31-31">
+					<inputs>
+						<in name="InstructionToSExtend"/>
+					</inputs>
+					<outputs>
+						<out name="B_CBZ_Select"/>
+					</outputs>
+				</do>
+			</op>
+
+			<op name="Split_Branch_LoadStore_Select">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="26-26">
+					<inputs>
+						<in name="InstructionToSExtend"/>
+					</inputs>
+					<outputs>
+						<out name="Branch_LoadStore_Select"/>
+					</outputs>
+				</do>
+			</op>
+
+		</operations>
+	</Component>
+
+
+	<!-- SIGN EXTEND SUB-MODULES -->
+	<Component>
+		<name>BSignExtend</name>
+		<description>BSignExtend</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="BSignExtended" bits="64" alternativeStr="true">
+				<to name="input0" comp="B_CBZ_Mux"/>	
 			</output>
 		</outputBuses>
 		<inputBuses>
-			<input name="Addr32bits" bits="32"/>
+			<input name="input" bits="26"/>
 		</inputBuses>
 		<operations>
-			<op name="SignExtend32">
+			<op name="SignExtend">
 				<dependsOn which="always" if="always"/>
 				<do func="signextend" out="64">
 					<inputs>
-						<in name="Addr32bits"/>
+						<in name="input"/>
 					</inputs>
 					<outputs>
-						<out name="Addr64bits"/>
+						<out name="BSignExtended"/>
 					</outputs>
 				</do>
 			</op>
 		</operations>
 	</Component>
 
+	<Component>
+		<name>CBZSignExtend</name>
+		<description>CBZSignExtend</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="CBZSignExtended" bits="64" alternativeStr="true">
+				<to name="input1" comp="B_CBZ_Mux"/>	
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="input" bits="19"/>
+		</inputBuses>
+		<operations>
+			<op name="SignExtend">
+				<dependsOn which="always" if="always"/>
+				<do func="signextend" out="64">
+					<inputs>
+						<in name="input"/>
+					</inputs>
+					<outputs>
+						<out name="CBZSignExtended"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+
+	<Component>
+		<name>LoadStoreSignExtend</name>
+		<description>LoadStoreSignExtend</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="LoadStoreSignExtendeded" bits="64" alternativeStr="true">
+				<to name="input0" comp="Branch_LoadStore_Mux"/>	
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="input" bits="9"/>
+		</inputBuses>
+		<operations>
+			<op name="SignExtend">
+				<dependsOn which="always" if="always"/>
+				<do func="signextend" out="64">
+					<inputs>
+						<in name="input"/>
+					</inputs>
+					<outputs>
+						<out name="LoadStoreSignExtendeded"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+	<!-- Sign Extend MUX -->
+
+	<Component>
+		<name>B_CBZ_Mux</name>
+		<description>B_CBZ_Mux</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="output" bits="64" alternativeStr="true">
+				<to name="input1" comp="Branch_LoadStore_Mux"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="selectInput" bits="1"/>
+			<input name="input0" bits="64"/>
+			<input name="input1" bits="64"/>
+		</inputBuses>
+		<operations>
+			<op name="input0">
+				<dependsOn which="selectInput" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="input0"/>
+					</inputs>
+					<outputs>
+						<out name="output"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="input1">
+				<dependsOn which="selectInput" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="input1"/>
+					</inputs>
+					<outputs>
+						<out name="output"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+
+	<Component>
+		<name>Branch_LoadStore_Mux</name>
+		<description>Branch_LoadStore_Mux</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="output" bits="64" alternativeStr="true">
+				<to name="in1Const" comp="Mux4"/>
+				<to name="Addr" comp="ShiftLeft"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="selectInput" bits="1"/>
+			<input name="input0" bits="64"/>
+			<input name="input1" bits="64"/>
+		</inputBuses>
+		<operations>
+			<op name="input0">
+				<dependsOn which="selectInput" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="input0"/>
+					</inputs>
+					<outputs>
+						<out name="output"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="input1">
+				<dependsOn which="selectInput" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="input1"/>
+					</inputs>
+					<outputs>
+						<out name="output"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+
+	<!-- Sign extend module end -->
 
 	<Component>
 		<name>ALUControl</name>
@@ -722,7 +954,7 @@
 		<description>Calc Branch Target ALU</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="result" bits="64">
+			<output name="result" bits="64" alternativeStr="true">
 				<to name="in1ALUBranch" comp="Mux2"/>
 			</output>
 		</outputBuses>
@@ -750,7 +982,7 @@
 		<description>Multiplexor branch or +4</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="newPC" bits="64">
+			<output name="newPC" bits="64" alternativeStr="true">
 				<to name="newPC" comp="PC"/>
 			</output>
 		</outputBuses>
@@ -859,7 +1091,7 @@
 		<description>For incrementing PC by 4</description>
 		<hidden>true</hidden>
 		<outputBuses>
-			<output name="out4" bits="64">
+			<output name="out4" bits="64" alternativeStr="true">
 				<to name="Increm4" comp="ALUIncr"/>
 			</output>
 		</outputBuses>
@@ -879,7 +1111,7 @@
 		<name>ALUIncr</name>
 		<description>Increment PC ALU</description>
 		<outputBuses>
-			<output name="PC+4" bits="64">
+			<output name="PC+4" bits="64" alternativeStr="true">
 				<to name="in0PCIncrem" comp="Mux2"/>
 			</output>
 		</outputBuses>

@@ -71,7 +71,7 @@ public class Functions {
     }
 
     public static String toDec(String str) {
-        if (str.length() != 32) {
+        if (str.length() != 64) {
             try {
                 if (str.equals("")) {
                     str = "0";
