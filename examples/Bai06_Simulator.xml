@@ -741,7 +741,6 @@
 					</inputs>
 					<outputs>
 						<out name="result"/>
-						<out name="zero"/>
 					</outputs>
 				</do>
 			</op>
@@ -754,7 +753,6 @@
 					</inputs>
 					<outputs>
 						<out name="result"/>
-						<out name="zero"/>
 					</outputs>
 				</do>
 			</op>
@@ -767,7 +765,6 @@
 					</inputs>
 					<outputs>
 						<out name="result"/>
-						<out name="zero"/>
 					</outputs>
 				</do>
 			</op>
@@ -780,7 +777,6 @@
 					</inputs>
 					<outputs>
 						<out name="result"/>
-						<out name="zero"/>
 					</outputs>
 				</do>
 			</op>

@@ -150,22 +150,18 @@ public class Functions {
         switch (i) {
             case OP_SUB /* 0 */:
                 strArr[0][0] = toBin(i3 - i4);
-                strArr[1][0] = checkZero(strArr[0][0]);
                 ProcSim.outLine("Sub operation ");
                 break;
             case OP_ADD /* 1 */:
                 strArr[0][0] = toBin(i3 + i4);
-                strArr[1][0] = checkZero(strArr[0][0]);
                 ProcSim.outLine("Add operation ");
                 break;
             case OP_AND /* 2 */:
                 strArr[0][0] = toBin(i3 & i4);
-                strArr[1][0] = checkZero(strArr[0][0]);
                 ProcSim.outLine("And operation ");
                 break;
             case OP_OR /* 3 */:
                 strArr[0][0] = toBin(i3 | i4);
-                strArr[1][0] = checkZero(strArr[0][0]);
                 ProcSim.outLine("Or operation ");
                 break;
             case OP_ZERO /* 4 */:
