@@ -1,8 +1,9 @@
 package defpackage;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 import javax.swing.event.TableModelEvent;
-import defpackage.instruction.Instruction;
 
 /* loaded from: ProcSim.jar:Functions.class */
 public class Functions {
@@ -22,9 +23,72 @@ public class Functions {
     public static final int OP_GETINSTR = 13;
     public static final int OP_SHIFTLEFT = 14;
     public static final int OP_SIGNEXTEND = 15;
-    public static final int OP_SLT = 16;
-    public static final int OP_JOIN = 17;
+    public static final int OP_JOIN = 16;
+    public static final int OP_ALU_SUB = 17;
+    public static final int OP_ALU_ADD = 18;
+    public static final int OP_ALU_AND = 19;
+    public static final int OP_ALU_OR = 20;
     public static Simulator sim;
+
+    private static final Map<String, Integer> funcOpMap = new HashMap<>();
+    private static final Map<Integer, String> opToStringMap = new HashMap<>();
+
+    static {
+        // string → op code
+        funcOpMap.put("sub", OP_SUB);
+        funcOpMap.put("add", OP_ADD);
+        funcOpMap.put("and", OP_AND);
+        funcOpMap.put("or", OP_OR);
+        funcOpMap.put("alu_sub", OP_ALU_SUB);
+        funcOpMap.put("alu_add", OP_ALU_ADD);
+        funcOpMap.put("alu_and", OP_ALU_AND);
+        funcOpMap.put("alu_or", OP_ALU_OR);
+        funcOpMap.put("zero", OP_ZERO);
+        funcOpMap.put("mux", OP_MUX);
+        funcOpMap.put("multiplexor", OP_MUX); // alias
+        funcOpMap.put("readmem", OP_READMEM);
+        funcOpMap.put("writemem", OP_WRITEMEM);
+        funcOpMap.put("out", OP_OUT);
+        funcOpMap.put("bitout", OP_BITOUT);
+        funcOpMap.put("split", OP_SPLIT);
+        funcOpMap.put("readreg", OP_READREG);
+        funcOpMap.put("writereg", OP_WRITEREG);
+        funcOpMap.put("getInstruction", OP_GETINSTR);
+        funcOpMap.put("shiftleft", OP_SHIFTLEFT);
+        funcOpMap.put("signextend", OP_SIGNEXTEND);
+        funcOpMap.put("join", OP_JOIN);
+
+        // op code → string (pick one preferred label for aliases)
+        opToStringMap.put(OP_SUB, "sub");
+        opToStringMap.put(OP_ADD, "add");
+        opToStringMap.put(OP_AND, "and");
+        opToStringMap.put(OP_OR, "or");
+        opToStringMap.put(OP_ALU_SUB, "alu_sub");
+        opToStringMap.put(OP_ALU_ADD, "alu_add");
+        opToStringMap.put(OP_ALU_AND, "alu_and");
+        opToStringMap.put(OP_ALU_OR, "alu_or");
+        opToStringMap.put(OP_ZERO, "zero");
+        opToStringMap.put(OP_MUX, "multiplexor");
+        opToStringMap.put(OP_READMEM, "readmem");
+        opToStringMap.put(OP_WRITEMEM, "writemem");
+        opToStringMap.put(OP_OUT, "out");
+        opToStringMap.put(OP_BITOUT, "bitout");
+        opToStringMap.put(OP_SPLIT, "split");
+        opToStringMap.put(OP_READREG, "readreg");
+        opToStringMap.put(OP_WRITEREG, "writereg");
+        opToStringMap.put(OP_GETINSTR, "getInstruction");
+        opToStringMap.put(OP_SHIFTLEFT, "shiftleft");
+        opToStringMap.put(OP_SIGNEXTEND, "signextend");
+        opToStringMap.put(OP_JOIN, "join");
+    }
+
+    public static int getFuncOp(String str) {
+        return funcOpMap.getOrDefault(str, -1);
+    }
+
+    public static String toString(int i) {
+        return opToStringMap.getOrDefault(i, Long.toString(i));
+    }
 
     Functions() {
     }
@@ -114,7 +178,7 @@ public class Functions {
         return z;
     }
 
-    public static String[][] doOp(int i, Vector<ProcBus> vector, Vector<ProcBus> vector2, String out) {
+    public static String[][] doOp(String i, Vector<ProcBus> vector, Vector<ProcBus> vector2, String out) {
         String[][] strArr = new String[20][2];
         for (int i2 = 0; i2 < 20; i2++) {
             strArr[i2][0] = "Error";
@@ -148,41 +212,41 @@ public class Functions {
         }
         int size = vector2 != null ? vector2.size() : 0;
         switch (i) {
-            case OP_SUB /* 0 */:
+            case "sub":
                 strArr[0][0] = toBin(i3 - i4);
                 ProcSim.outLine("Sub operation ");
                 break;
-            case OP_ADD /* 1 */:
+            case "add":
                 strArr[0][0] = toBin(i3 + i4);
                 ProcSim.outLine("Add operation ");
                 break;
-            case OP_AND /* 2 */:
+            case "and":
                 strArr[0][0] = toBin(i3 & i4);
                 ProcSim.outLine("And operation ");
                 break;
-            case OP_OR /* 3 */:
+            case "or":
                 strArr[0][0] = toBin(i3 | i4);
                 ProcSim.outLine("Or operation ");
                 break;
-            case OP_ZERO /* 4 */:
+            case "zero":
                 strArr[0][0] = checkZero(str2);
                 System.out.println(strArr[0][0]);
                 ProcSim.outLine("Zero operation ");
                 break;
-            case OP_MUX /* 5 */:
+            case "mux":
                 strArr[0][0] = str2;
                 System.out.println(strArr[0][0]);
                 ProcSim.outLine("Mux operation ");
                 break;
-            case OP_READMEM /* 6 */:
+            case "readmem":
                 ProcSim.outLine("Reading from mem ");
                 strArr[0][0] = sim.getDoubleWordMem(i3);
                 break;
-            case OP_WRITEMEM /* 7 */:
+            case "writemem":
                 ProcSim.outLine("Writing to mem ");
                 sim.setDoubleWordMem(i3, str3);
                 break;
-            case OP_OUT /* 8 */:
+            case "out":
                 ProcSim.outLine("Outputing bin string ");
                 if (out == null) {
                     out = "0";
@@ -192,7 +256,7 @@ public class Functions {
                     strArr[i5][0] = ProcFunc.zeroExtend(out, vector2.get(0).bits);
                 }
                 break;
-            case OP_BITOUT /* 9 */:
+            case "bitout":
                 ProcSim.outLine("Outputing bit string ");
                 if (out == null) {
                     out = ProcFunc.zeroExtend("0", size);
@@ -209,7 +273,7 @@ public class Functions {
                     i6 += i8;
                 }
                 break;
-            case OP_SPLIT /* 10 */:
+            case "split":
                 ProcSim.outLine("Split ");
                 if (out == null) {
                     out = "31-0";
@@ -227,7 +291,8 @@ public class Functions {
                         ProcSim.outErr("Error in outstring in func 'split', (should be e.g. '31-26') - " + out);
                         break;
                     } else if (parseInt > str2.length()) {
-                        ProcSim.outErr("Error in outstring in func 'split', split value is bigger than input value - " + out);
+                        ProcSim.outErr(
+                                "Error in outstring in func 'split', split value is bigger than input value - " + out);
                         break;
                     } else if (parseInt2 < 0 || parseInt < 0) {
                         ProcSim.outErr("Error in outstring in func 'split', split value is smaller than zero - " + out);
@@ -237,19 +302,18 @@ public class Functions {
                         break;
                     }
                 }
-                // break;
-            case OP_READREG /* 11 */:
-                strArr[0][0] = sim.registers[(int)i3];
+            case "readreg":
+                strArr[0][0] = sim.registers[(int) i3];
                 ProcSim.outLine("Read reg ");
                 break;
-            case OP_WRITEREG /* 12 */:
-                sim.registers[(int)i3] = str3;
+            case "writereg":
+                sim.setRegister((int) i3, str3);
                 ProcSim.outLine("Wrote Reg ");
                 sim.lastChangedReg = str2;
                 break;
-            case OP_GETINSTR /* 13 */:
+            case "getInstruction":
                 ProcSim.outLine("Getting instruction ");
-                int instrIdx = (int)i3 / 4;
+                int instrIdx = (int) i3 / 4;
                 if (instrIdx >= sim.source.assembly.numRealInstr) {
                     ProcSim.out("Found end of instructions - stopping execution");
                     strArr[0][0] = "0";
@@ -263,12 +327,15 @@ public class Functions {
                     strArr[0][1] = "Exit";
                     break;
                 } else if (sim.source.assembly.instr == null || sim.source.assembly.instr[lineIdx] == null) {
-                    ProcSim.outErr("Error 11: cannot find the requested instruction from instruction memory at address: " + Long.toString(i3));
+                    ProcSim.outErr(
+                            "Error 11: cannot find the requested instruction from instruction memory at address: "
+                                    + Long.toString(i3));
                     break;
                 } else {
-                    sim.execInstr = (int)i3 / 4;
+                    sim.execInstr = (int) i3 / 4;
                     if (sim.source.viewSim.instrMemFrame != null && sim.source.viewSim.instrMemFrame.isVisible()) {
-                        sim.source.viewSim.instrMemFrame.tModel.fireTableChanged(new TableModelEvent(sim.source.viewSim.instrMemFrame.tModel));
+                        sim.source.viewSim.instrMemFrame.tModel
+                                .fireTableChanged(new TableModelEvent(sim.source.viewSim.instrMemFrame.tModel));
                         Thread thread = sim.source.diagCanvas.animThread.t;
                         Thread.yield();
                         sim.source.viewSim.instrMemFrame.yourLabel.setText(sim.source.assembly.instr[lineIdx].comment);
@@ -277,8 +344,7 @@ public class Functions {
                     strArr[0][1] = sim.source.assembly.instr[lineIdx].strNoLbl;
                     break;
                 }
-                // break;
-            case OP_SHIFTLEFT /* 14 */:
+            case "shiftleft":
                 ProcSim.outLine("Shiftleft ");
                 if (out == null) {
                     out = "0";
@@ -286,17 +352,38 @@ public class Functions {
                 }
                 strArr[0][0] = shiftLeft(str2, Integer.parseInt(out));
                 break;
-            case OP_SIGNEXTEND /* 15 */:
+            case "signextend":
                 ProcSim.outLine("Sign extend ");
                 strArr[0][0] = ProcFunc.signExtend(str2, Integer.parseInt(out));
                 break;
-            case OP_SLT /* 16 */:
-                // EMPTY
-                ProcSim.outLine("SLT operation ");
-                break;
-            case OP_JOIN /* 17 */:
+            case "join":
                 strArr[0][0] = str2 + str3;
                 break;
+            case "alu_sub":
+                strArr[0][0] = toBin(i3 - i4);
+                strArr[1][0] = checkZero(strArr[0][0]);
+                strArr[2][0] = getFlags(i3, i4, i3 - i4, OP_SUB);
+                ProcSim.outLine("Sub operation ");
+                break;
+            case "alu_add":
+                strArr[0][0] = toBin(i3 + i4);
+                strArr[1][0] = checkZero(strArr[0][0]);
+                strArr[2][0] = getFlags(i3, i4, i3 + i4, OP_ADD);
+                ProcSim.outLine("Add operation ");
+                break;
+            case "alu_and":
+                strArr[0][0] = toBin(i3 & i4);
+                strArr[1][0] = checkZero(strArr[0][0]);
+                strArr[2][0] = getFlags(i3, i4, i3 & i4, OP_AND);
+                ProcSim.outLine("And operation ");
+                break;
+            case "alu_or":
+                strArr[0][0] = toBin(i3 | i4);
+                strArr[1][0] = checkZero(strArr[0][0]);
+                strArr[2][0] = getFlags(i3, i4, i3 | i4, OP_OR);
+                ProcSim.outLine("Or operation ");
+                break;
+
         }
         if (strArr[0][0].equals("Error")) {
             ProcSim.outLine("No new vals ");
@@ -307,6 +394,42 @@ public class Functions {
             }
         }
         return strArr;
+    }
+
+    private static String getFlags(long i3, long i4, long result, int operation) {
+        boolean zeroFlag, negativeFlag, carryFlag, overflowFlag;
+        zeroFlag = negativeFlag = carryFlag = overflowFlag = false;
+
+        zeroFlag = (result == 0);
+        negativeFlag = (result < 0);
+
+        switch (operation) {
+            case OP_SUB:
+                // Overflow: (sign_i3 != sign_i4) && (sign_result != sign_i3)
+                overflowFlag = ((i3 >= 0 && i4 < 0 && result < 0) ||
+                        (i3 < 0 && i4 >= 0 && result >= 0));
+                // Carry: Set if borrow occurs (i3 < i4 in unsigned terms)
+                carryFlag = Long.compareUnsigned(i3, i4) < 0;
+                break;
+            case OP_ADD:
+                // Overflow: (sign_i3 == sign_i4) && (sign_result != sign_i3)
+                overflowFlag = ((i3 >= 0 && i4 >= 0 && result < 0) ||
+                        (i3 < 0 && i4 < 0 && result >= 0));
+                carryFlag = (i3 > 0 && i4 > 0 && result < i3) ||
+                        (i3 < 0 && i4 < 0 && result > i3) ||
+                        (i3 > 0 && i4 < 0 && result < i3) ||
+                        (i3 < 0 && i4 > 0 && result < i4);
+                break;
+            case OP_AND:
+            case OP_OR:
+                overflowFlag = false;
+                carryFlag = false;
+                break;
+        }
+        return (zeroFlag ? "1" : "0")
+            + (negativeFlag ? "1" : "0")
+            + (carryFlag ? "1" : "0")
+            + (overflowFlag ? "1" : "0");
     }
 
     private static String shiftLeft(String str, int i) {
@@ -320,107 +443,4 @@ public class Functions {
         return Long.parseLong(toDec(str)) == 0 ? "1" : "0";
     }
 
-    public static String toString(int i) {
-        switch (i) {
-            case OP_SUB /* 0 */:
-                return "sub";
-            case OP_ADD /* 1 */:
-                return "add";
-            case OP_AND /* 2 */:
-                return "and";
-            case OP_OR /* 3 */:
-                return "or";
-            case OP_ZERO /* 4 */:
-                return "zero";
-            case OP_MUX /* 5 */:
-                return "multiplexor";
-            case OP_READMEM /* 6 */:
-                return "readmem";
-            case OP_WRITEMEM /* 7 */:
-                return "writemem";
-            case OP_OUT /* 8 */:
-                return "out";
-            case OP_BITOUT /* 9 */:
-                return "bitout";
-            case OP_SPLIT /* 10 */:
-                return "split";
-            case OP_READREG /* 11 */:
-                return "readreg";
-            case OP_WRITEREG /* 12 */:
-                return "writereg";
-            case OP_GETINSTR /* 13 */:
-                return "getInstruction";
-            case OP_SHIFTLEFT /* 14 */:
-                return "shiftleft";
-            case OP_SIGNEXTEND /* 15 */:
-                return "signextend";
-            case OP_SLT /* 16 */:
-                return "slt";
-            case OP_JOIN /* 17 */:
-                return "join";
-            default:
-                return Long.toString(i);
-        }
-    }
-
-    public static int getFuncOp(String str) {
-        if (str.equals("mux")) {
-            return 5;
-        }
-        if (str.equals("or")) {
-            return 3;
-        }
-        if (str.equals("zero")) {
-            return 4;
-        }
-        if (str.equals("multiplexor")) {
-            return 5;
-        }
-        if (str.equals("add")) {
-            return 1;
-        }
-        if (str.equals("and")) {
-            return 2;
-        }
-        if (str.equals("sub")) {
-            return 0;
-        }
-        if (str.equals("readmem")) {
-            return 6;
-        }
-        if (str.equals("writemem")) {
-            return 7;
-        }
-        if (str.equals("bitout")) {
-            return 9;
-        }
-        if (str.equals("out")) {
-            return 8;
-        }
-        if (str.equals("split")) {
-            return 10;
-        }
-        if (str.equals("readreg")) {
-            return 11;
-        }
-        if (str.equals("writereg")) {
-            return 12;
-        }
-        if (str.equals("getInstruction")) {
-            return 13;
-        }
-        if (str.equals("shiftleft")) {
-            return 14;
-        }
-        if (str.equals("signextend")) {
-            return 15;
-        }
-        if (str.equals("slt")) {
-            return 16;
-        }
-        if (str.equals("join")) {
-            return 17;
-        }
-        return -1;
-    }
 }

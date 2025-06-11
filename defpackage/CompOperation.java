@@ -5,14 +5,14 @@ import java.util.Vector;
 /* loaded from: ProcSim.jar:CompOperation.class */
 public class CompOperation {
     String name;
-    int functionOp;
+    String functionOp;
     Vector<InputCheck> inputChecks;
     Vector<ProcBus> inputsToOp;
     Vector<ProcBus> outputs;
     String out;
     Simulator sim;
 
-    CompOperation(int i, Vector<ProcBus> vector, Vector<InputCheck> vector2, Vector<ProcBus> vector3, Simulator simulator) {
+    CompOperation(String i, Vector<ProcBus> vector, Vector<InputCheck> vector2, Vector<ProcBus> vector3, Simulator simulator) {
         this.inputChecks = new Vector<>();
         this.inputsToOp = new Vector<>();
         this.outputs = new Vector<>();
@@ -75,6 +75,6 @@ public class CompOperation {
     }
 
     public String toString() {
-        return Functions.toString(this.functionOp);
+        return this.functionOp;
     }
 }

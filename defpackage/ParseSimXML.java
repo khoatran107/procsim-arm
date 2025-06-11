@@ -454,7 +454,7 @@ class ParseSimXML {
                 CompOperation compOperation = new CompOperation();
                 compOperation.sim = this.sim;
                 compOperation.name = getComp(i14).tmpOps[0][i15];
-                compOperation.functionOp = getFuncOp(getComp(i14).tmpOps[1][i15]);
+                compOperation.functionOp = getComp(i14).tmpOps[1][i15];
                 compOperation.out = getComp(i14).tmpOps[2][i15];
                 for (int i16 = 0; i16 < getComp(i14).curOutOp[i15]; i16++) {
                     ProcBus findOutBus2 = findOutBus(getComp(i14).tmpOutFromOps[i16][i15], getComp(i14));

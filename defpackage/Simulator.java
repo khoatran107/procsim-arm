@@ -111,4 +111,9 @@ class Simulator {
         }
         return vector;
     }
+
+    public void setRegister(int regNum, String value) {
+        if (regNum != 31) 
+            this.registers[regNum] = value;
+    }
 }

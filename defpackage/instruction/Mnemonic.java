@@ -27,7 +27,7 @@ public enum Mnemonic {
 	AND("AND", "and", TokenType.MNEMONIC_RRR, "10001010000", "0000"),
 	ANDS("ANDS", "ands", TokenType.MNEMONIC_RRR, "11101010000", "0000"),
 	ORR("ORR", "orr", TokenType.MNEMONIC_RRR, "10101010000", "0001"),
-	EOR("EOR", "eor", TokenType.MNEMONIC_RRR, "11101010000", "1011"),
+	EOR("EOR", "eor", TokenType.MNEMONIC_RRR, "11001010000", "1011"),
 
 	// Logical Immediate
 	ANDI("ANDI", "andi", TokenType.MNEMONIC_RRI, "1001001000", "0000"),
