@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Vector;
 import javax.swing.event.TableModelEvent;
 
+import defpackage.ControlUnit.ControlSignals;
+
 /* loaded from: ProcSim.jar:Functions.class */
 public class Functions {
     public static Simulator sim;
@@ -97,7 +99,7 @@ public class Functions {
         return z;
     }
 
-    public static String[][] doOp(String i, Vector<ProcBus> vector, Vector<ProcBus> vector2, String out) {
+    public static String[][] doOp(String func, Vector<ProcBus> inputs, Vector<ProcBus> outputs, String out) {
         String[][] strArr = new String[20][2];
         for (int i2 = 0; i2 < 20; i2++) {
             strArr[i2][0] = "Error";
@@ -107,30 +109,40 @@ public class Functions {
         String str3 = "";
         long i3 = 0;
         long i4 = 0;
-        if (vector != null) {
-            if (vector.size() >= 1) {
-                str2 = vector.get(0).binaryValue;
+        if (inputs != null) {
+            if (inputs.size() >= 1) {
+                str2 = inputs.get(0).binaryValue;
                 i3 = Long.parseLong(toDec(str2));
-                if (!checkAllowFunc(vector.get(0))) {
+                if (!checkAllowFunc(inputs.get(0))) {
                     return strArr;
                 }
             }
-            if (vector.size() >= 2) {
-                str3 = vector.get(1).binaryValue;
+            if (inputs.size() >= 2) {
+                str3 = inputs.get(1).binaryValue;
                 i4 = Long.parseLong(toDec(str3));
-                if (!checkAllowFunc(vector.get(1))) {
+                if (!checkAllowFunc(inputs.get(1))) {
                     return strArr;
                 }
             }
-            if (vector.size() >= 3) {
-                Long.parseLong(toDec(vector.get(2).binaryValue));
-                if (!checkAllowFunc(vector.get(2))) {
+            if (inputs.size() >= 3) {
+                Long.parseLong(toDec(inputs.get(2).binaryValue));
+                if (!checkAllowFunc(inputs.get(2))) {
                     return strArr;
                 }
             }
         }
-        int size = vector2 != null ? vector2.size() : 0;
-        switch (i) {
+        int size = outputs != null ? outputs.size() : 0;
+        switch (func) {
+            case "control":
+                long opcode = Integer.parseInt(inputs.get(0).binaryValue, 2);
+                ControlSignals controlSignals = ControlUnit.decode(opcode);
+                strArr[0][0] = toBin(controlSignals.aluop).substring(64 - (int)Constants.ALUOPSIZE);
+                strArr[1][0] = toBin(controlSignals.movop).substring(64 - (int)Constants.MOVOPSIZE);
+                strArr[2][0] = toBin(controlSignals.memsize).substring(64 - (int)Constants.MEMSIZESIZE);
+                for (int i = 0; i < Constants.CONTROLSIZE; i++) {
+                    strArr[i + 3][0] = toBin((controlSignals.control >> (Constants.CONTROLSIZE - 1 - i)) & 1);
+                }
+
             case "sub":
                 strArr[0][0] = toBin(i3 - i4);
                 ProcSim.outLine("Sub operation ");
@@ -172,7 +184,7 @@ public class Functions {
                     ProcSim.outErr("Error: OutString not set in func 'out'");
                 }
                 for (int i5 = 0; i5 < size; i5++) {
-                    strArr[i5][0] = ProcFunc.zeroExtend(out, vector2.get(0).bits);
+                    strArr[i5][0] = ProcFunc.zeroExtend(out, outputs.get(0).bits);
                 }
                 break;
             case "bitout":
@@ -181,13 +193,13 @@ public class Functions {
                     out = ProcFunc.zeroExtend("0", size);
                     ProcSim.outErr("Error: OutString not set in func 'bitout'");
                 }
-                if (vector2.size() > out.length()) {
+                if (outputs.size() > out.length()) {
                     out = ProcFunc.zeroExtend(out, size);
                     ProcSim.outErr("Error: OutString does not have enough bits to fill all buses in func 'bitout'");
                 }
                 int i6 = 0;
                 for (int i7 = 0; i7 < size; i7++) {
-                    int i8 = vector2.get(i7).bits;
+                    int i8 = outputs.get(i7).bits;
                     strArr[i7][0] = out.substring(i6, i6 + i8);
                     i6 += i8;
                 }
@@ -302,3 +314,4 @@ public class Functions {
     }
 
 }
+

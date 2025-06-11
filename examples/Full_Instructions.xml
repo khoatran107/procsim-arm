@@ -69,23 +69,7 @@
 		<hidden>false</hidden>
 		<outputBuses>
 			<output name="Opcode" bits="11">
-				<to name="InControl" comp="Control"/>
-			</output>
-			<output name="Rs" bits="5">
-				<to name="ReadReg1" comp="Registers"/>
-			</output>
-			<output name="Rt" bits="5">
-				<to name="ReadReg2_1" comp="Mux1"/>
-			</output>
-			<output name="Rd" bits="5">
-				<to name="ReadReg2_2" comp="Mux1"/>
-				<to name="WriteReg" comp="Registers"/>
-			</output>
-			<output name="InstructionToSExtend" bits="32">
-				<to name="InstructionToSExtend" comp="SExtend"/>
-			</output>
-			<output name="OpcodeALUControl" bits="11">
-				<to name="Opcode" comp="ALUControl"/>
+				<to name="Opcode" comp="Control"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -103,61 +87,6 @@
 					</outputs>
 				</do>
 			</op>
-			<op name="Rs09-05">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="9-5">
-					<inputs>
-						<in name="Instr"/>
-					</inputs>
-					<outputs>
-						<out name="Rs"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="Rt20-16">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="20-16">
-					<inputs>
-						<in name="Instr"/>
-					</inputs>
-					<outputs>
-						<out name="Rt"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="Rd04-00">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="4-0">
-					<inputs>
-						<in name="Instr"/>
-					</inputs>
-					<outputs>
-						<out name="Rd"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="Opcode31-0">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="31-0">
-					<inputs>
-						<in name="Instr"/>
-					</inputs>
-					<outputs>
-						<out name="InstructionToSExtend"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="Opcode31-21">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="31-21">
-					<inputs>
-						<in name="Instr"/>
-					</inputs>
-					<outputs>
-						<out name="OpcodeALUControl"/>
-					</outputs>
-				</do>
-			</op>
 		</operations>
 	</Component>
 	
@@ -166,156 +95,61 @@
 		<name>Control</name>
 		<description>Control Unit</description>
 		<hidden>false</hidden>
+		<inputBuses>
+			<input name="Opcode" bits="11"/>
+		</inputBuses>
 		<outputBuses>
-			<output name="Reg2Loc" bits="1">
-				<to name="Reg2Loc" comp="Mux1"/>
+			<output name="ALUOP" bits="6">
 			</output>
-			<output name="UncondBranch" bits="1">
-				<to name="UncondBranch" comp="OrBranch"/>
+			<output name="MOVOP" bits="3">
 			</output>
-			<output name="Branch" bits="1">
-				<to name="BranchIn" comp="ZeroAnd"/>
+			<output name="MEMSIZE" bits="2">
 			</output>
-			<output name="MemRead" bits="1">
-				<to name="MemRead" comp="Memory"/>
+			<output name="SIGNLOAD" bits="1">
 			</output>
-			<output name="MemToReg" bits="1">
-				<to name="MemOrResultToReg" comp="Mux3"/>
+			<output name="REG1LOC" bits="1">
 			</output>
-			<output name="MemWrite" bits="1">
-				<to name="MemWrite" comp="Memory"/>
+			<output name="REG2LOC" bits="1">
 			</output>
-			<output name="ALUSrc" bits="1">
-				<to name="ALUSrc" comp="Mux4"/>
+			<output name="USEMOV" bits="1">
 			</output>
-			<output name="ALUOp" bits="2">
-				<to name="ALUOp" comp="ALUControl"/>
+			<output name="ALU1SRC" bits="1">
 			</output>
-			<output name="RegWrite" bits="1">
-				<to name="RegWrite" comp="Registers"/>
+			<output name="ALU2SRC" bits="1">
+			</output>
+			<output name="SETFLAGS" bits="1">
+			</output>
+			<output name="MEMREAD" bits="1">
+			</output>
+			<output name="MEMWRITE" bits="1">
+			</output>			
+			<output name="REGWRITE" bits="1">
+			</output>
+			<output name="PCTOREG" bits="1">
 			</output>
 		</outputBuses>
-		<inputBuses>
-			<input name="InControl" bits="11"/>
-		</inputBuses>
 		<operations>
-			<op name="control-r-format">
-				<dependsOn which="InControl" if="1xx0101x000"/>
-				<do func="bitout" out="0001000010">
-					<outputs>
-						<out name="Reg2Loc"/>
-						<out name="ALUSrc"/>
-						<out name="MemToReg"/>
-						<out name="RegWrite"/>
-						<out name="MemRead"/>
-						<out name="MemWrite"/>
-						<out name="Branch"/>
-						<out name="UncondBranch"/>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-ldur">
-				<dependsOn which="InControl" if="11111000010"/>
-				<do func="bitout" out="0111100000">
-					<outputs>
-						<out name="Reg2Loc"/>
-						<out name="ALUSrc"/>
-						<out name="MemToReg"/>
-						<out name="RegWrite"/>
-						<out name="MemRead"/>
-						<out name="MemWrite"/>
-						<out name="Branch"/>
-						<out name="UncondBranch"/>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-stur">
-				<dependsOn which="InControl" if="11111000000"/>
-				<do func="bitout" out="1100010000">
-					<outputs>
-						<out name="Reg2Loc"/>
-						<out name="ALUSrc"/>
-						<out name="MemToReg"/>
-						<out name="RegWrite"/>
-						<out name="MemRead"/>
-						<out name="MemWrite"/>
-						<out name="Branch"/>
-						<out name="UncondBranch"/>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-cbz">
-				<dependsOn which="InControl" if="10110100xxx"/>
-				<do func="bitout" out="1000001001">
-					<outputs>
-						<out name="Reg2Loc"/>
-						<out name="ALUSrc"/>
-						<out name="MemToReg"/>
-						<out name="RegWrite"/>
-						<out name="MemRead"/>
-						<out name="MemWrite"/>
-						<out name="Branch"/>
-						<out name="UncondBranch"/>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-b">
-				<dependsOn which="InControl" if="000101xxxxx"/>
-				<do func="bitout" out="0000000100">
-					<outputs>
-						<out name="Reg2Loc"/>
-						<out name="ALUSrc"/>
-						<out name="MemToReg"/>
-						<out name="RegWrite"/>
-						<out name="MemRead"/>
-						<out name="MemWrite"/>
-						<out name="Branch"/>
-						<out name="UncondBranch"/>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-	
-	<Component>
-		<name>Mux1</name>
-		<description>Multiplexor Reg Dest</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="ReadReg2" bits="5">
-				<to name="ReadReg2" comp="Registers"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="Reg2Loc" bits="1"/>
-			<input name="ReadReg2_1" bits="5"/>
-			<input name="ReadReg2_2" bits="5"/>
-		</inputBuses>
-		<operations>
-			<op name="ReadReg2_1">
-				<dependsOn which="Reg2Loc" if="0"/>
-				<do func="mux">
+			<op name="control">
+				<do func="control">
 					<inputs>
-						<in name="ReadReg2_1"/>
+						<in name="Opcode"/>
 					</inputs>
 					<outputs>
-						<out name="ReadReg2"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="ReadReg2_2">
-				<dependsOn which="Reg2Loc" if="1"/>
-				<do func="mux">
-					<inputs>
-						<in name="ReadReg2_2"/>
-					</inputs>
-					<outputs>
-						<out name="ReadReg2"/>
+						<out name="ALUOP"/>
+						<out name="MOVOP"/>
+						<out name="MEMSIZE"/>
+
+						<out name="SIGNLOAD"/>
+						<out name="REG1LOC"/>
+						<out name="REG2LOC"/>
+						<out name="USEMOV"/>
+						<out name="ALU1SRC"/>
+						<out name="ALU2SRC"/>
+						<out name="SETFLAGS"/>
+						<out name="MEMREAD"/>
+						<out name="MEMWRITE"/>
+						<out name="REGWRITE"/>
+						<out name="PCTOREG"/>
 					</outputs>
 				</do>
 			</op>
@@ -410,14 +244,14 @@
 
 		</outputBuses>
 		<inputBuses>
-			<input name="InstructionToSExtend" bits="32"/>
+			<input name="FullInstruction" bits="32"/>
 		</inputBuses>
 		<operations>
 			<op name="SplitBSignExtend">
 				<dependsOn which="always" if="always"/>
 				<do func="split" out="25-0">
 					<inputs>
-						<in name="InstructionToSExtend"/>
+						<in name="FullInstruction"/>
 					</inputs>
 					<outputs>
 						<out name="BSignExtendRawInput"/>
@@ -428,7 +262,7 @@
 				<dependsOn which="always" if="always"/>
 				<do func="split" out="23-5">
 					<inputs>
-						<in name="InstructionToSExtend"/>
+						<in name="FullInstruction"/>
 					</inputs>
 					<outputs>
 						<out name="CBZSignExtendRawInput"/>
@@ -439,7 +273,7 @@
 				<dependsOn which="always" if="always"/>
 				<do func="split" out="20-12">
 					<inputs>
-						<in name="InstructionToSExtend"/>
+						<in name="FullInstruction"/>
 					</inputs>
 					<outputs>
 						<out name="LoadStoreSignExtendRawInput"/>
@@ -452,7 +286,7 @@
 				<dependsOn which="always" if="always"/>
 				<do func="split" out="31-31">
 					<inputs>
-						<in name="InstructionToSExtend"/>
+						<in name="FullInstruction"/>
 					</inputs>
 					<outputs>
 						<out name="B_CBZ_Select"/>
@@ -464,7 +298,7 @@
 				<dependsOn which="always" if="always"/>
 				<do func="split" out="26-26">
 					<inputs>
-						<in name="InstructionToSExtend"/>
+						<in name="FullInstruction"/>
 					</inputs>
 					<outputs>
 						<out name="Branch_LoadStore_Select"/>
