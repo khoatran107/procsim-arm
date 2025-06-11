@@ -110,7 +110,7 @@ class ParseSimXML {
             return;
         }
         switch (node.getNodeType()) {
-            case Functions.OP_ADD /* 1 */:
+            case 1:
                 String nodeName = node.getNodeName();
                 if (nodeName.equals("simname")) {
                     this.elem = 1;
@@ -273,29 +273,29 @@ class ParseSimXML {
                     }
                 }
                 break;
-            case Functions.OP_OR /* 3 */:
+            case 3:
                 String trim = node.getNodeValue().trim();
                 if (trim.indexOf("\n") < 0 && trim.length() > 0) {
                     switch (this.elem) {
-                        case Functions.OP_ADD /* 1 */:
+                        case 1:
                             this.sim.name = trim;
                             this.elem = -1;
                             break;
-                        case Functions.OP_AND /* 2 */:
+                        case 2:
                             this.sim.comps.get(this.curComp).name = trim;
                             this.elem = -1;
                             break;
-                        case Functions.OP_OR /* 3 */:
+                        case 3:
                             this.sim.comps.get(this.curComp).description = trim;
                             this.elem = -1;
                             break;
-                        case Functions.OP_ZERO /* 4 */:
+                        case 4:
                             if (trim.equals("true")) {
                                 this.sim.comps.get(this.curComp).hidden = true;
                             }
                             this.elem = -1;
                             break;
-                        case Functions.OP_OUT /* 8 */:
+                        case 8:
                             parseSupportedISA(trim);
                             this.elem = -1;
                             break;
@@ -364,10 +364,6 @@ class ParseSimXML {
             }
         }
         return -1;
-    }
-
-    public int getFuncOp(String str) {
-        return Functions.getFuncOp(str);
     }
 
     public boolean traverseTmpVars() {
