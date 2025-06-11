@@ -7,88 +7,7 @@ import javax.swing.event.TableModelEvent;
 
 /* loaded from: ProcSim.jar:Functions.class */
 public class Functions {
-    public static final int OP_SUB = 0;
-    public static final int OP_ADD = 1;
-    public static final int OP_AND = 2;
-    public static final int OP_OR = 3;
-    public static final int OP_ZERO = 4;
-    public static final int OP_MUX = 5;
-    public static final int OP_READMEM = 6;
-    public static final int OP_WRITEMEM = 7;
-    public static final int OP_OUT = 8;
-    public static final int OP_BITOUT = 9;
-    public static final int OP_SPLIT = 10;
-    public static final int OP_READREG = 11;
-    public static final int OP_WRITEREG = 12;
-    public static final int OP_GETINSTR = 13;
-    public static final int OP_SHIFTLEFT = 14;
-    public static final int OP_SIGNEXTEND = 15;
-    public static final int OP_JOIN = 16;
-    public static final int OP_ALU_SUB = 17;
-    public static final int OP_ALU_ADD = 18;
-    public static final int OP_ALU_AND = 19;
-    public static final int OP_ALU_OR = 20;
     public static Simulator sim;
-
-    private static final Map<String, Integer> funcOpMap = new HashMap<>();
-    private static final Map<Integer, String> opToStringMap = new HashMap<>();
-
-    static {
-        // string → op code
-        funcOpMap.put("sub", OP_SUB);
-        funcOpMap.put("add", OP_ADD);
-        funcOpMap.put("and", OP_AND);
-        funcOpMap.put("or", OP_OR);
-        funcOpMap.put("alu_sub", OP_ALU_SUB);
-        funcOpMap.put("alu_add", OP_ALU_ADD);
-        funcOpMap.put("alu_and", OP_ALU_AND);
-        funcOpMap.put("alu_or", OP_ALU_OR);
-        funcOpMap.put("zero", OP_ZERO);
-        funcOpMap.put("mux", OP_MUX);
-        funcOpMap.put("multiplexor", OP_MUX); // alias
-        funcOpMap.put("readmem", OP_READMEM);
-        funcOpMap.put("writemem", OP_WRITEMEM);
-        funcOpMap.put("out", OP_OUT);
-        funcOpMap.put("bitout", OP_BITOUT);
-        funcOpMap.put("split", OP_SPLIT);
-        funcOpMap.put("readreg", OP_READREG);
-        funcOpMap.put("writereg", OP_WRITEREG);
-        funcOpMap.put("getInstruction", OP_GETINSTR);
-        funcOpMap.put("shiftleft", OP_SHIFTLEFT);
-        funcOpMap.put("signextend", OP_SIGNEXTEND);
-        funcOpMap.put("join", OP_JOIN);
-
-        // op code → string (pick one preferred label for aliases)
-        opToStringMap.put(OP_SUB, "sub");
-        opToStringMap.put(OP_ADD, "add");
-        opToStringMap.put(OP_AND, "and");
-        opToStringMap.put(OP_OR, "or");
-        opToStringMap.put(OP_ALU_SUB, "alu_sub");
-        opToStringMap.put(OP_ALU_ADD, "alu_add");
-        opToStringMap.put(OP_ALU_AND, "alu_and");
-        opToStringMap.put(OP_ALU_OR, "alu_or");
-        opToStringMap.put(OP_ZERO, "zero");
-        opToStringMap.put(OP_MUX, "multiplexor");
-        opToStringMap.put(OP_READMEM, "readmem");
-        opToStringMap.put(OP_WRITEMEM, "writemem");
-        opToStringMap.put(OP_OUT, "out");
-        opToStringMap.put(OP_BITOUT, "bitout");
-        opToStringMap.put(OP_SPLIT, "split");
-        opToStringMap.put(OP_READREG, "readreg");
-        opToStringMap.put(OP_WRITEREG, "writereg");
-        opToStringMap.put(OP_GETINSTR, "getInstruction");
-        opToStringMap.put(OP_SHIFTLEFT, "shiftleft");
-        opToStringMap.put(OP_SIGNEXTEND, "signextend");
-        opToStringMap.put(OP_JOIN, "join");
-    }
-
-    public static int getFuncOp(String str) {
-        return funcOpMap.getOrDefault(str, -1);
-    }
-
-    public static String toString(int i) {
-        return opToStringMap.getOrDefault(i, Long.toString(i));
-    }
 
     Functions() {
     }
@@ -359,31 +278,6 @@ public class Functions {
             case "join":
                 strArr[0][0] = str2 + str3;
                 break;
-            case "alu_sub":
-                strArr[0][0] = toBin(i3 - i4);
-                strArr[1][0] = checkZero(strArr[0][0]);
-                strArr[2][0] = getFlags(i3, i4, i3 - i4, OP_SUB);
-                ProcSim.outLine("Sub operation ");
-                break;
-            case "alu_add":
-                strArr[0][0] = toBin(i3 + i4);
-                strArr[1][0] = checkZero(strArr[0][0]);
-                strArr[2][0] = getFlags(i3, i4, i3 + i4, OP_ADD);
-                ProcSim.outLine("Add operation ");
-                break;
-            case "alu_and":
-                strArr[0][0] = toBin(i3 & i4);
-                strArr[1][0] = checkZero(strArr[0][0]);
-                strArr[2][0] = getFlags(i3, i4, i3 & i4, OP_AND);
-                ProcSim.outLine("And operation ");
-                break;
-            case "alu_or":
-                strArr[0][0] = toBin(i3 | i4);
-                strArr[1][0] = checkZero(strArr[0][0]);
-                strArr[2][0] = getFlags(i3, i4, i3 | i4, OP_OR);
-                ProcSim.outLine("Or operation ");
-                break;
-
         }
         if (strArr[0][0].equals("Error")) {
             ProcSim.outLine("No new vals ");
@@ -394,42 +288,6 @@ public class Functions {
             }
         }
         return strArr;
-    }
-
-    private static String getFlags(long i3, long i4, long result, int operation) {
-        boolean zeroFlag, negativeFlag, carryFlag, overflowFlag;
-        zeroFlag = negativeFlag = carryFlag = overflowFlag = false;
-
-        zeroFlag = (result == 0);
-        negativeFlag = (result < 0);
-
-        switch (operation) {
-            case OP_SUB:
-                // Overflow: (sign_i3 != sign_i4) && (sign_result != sign_i3)
-                overflowFlag = ((i3 >= 0 && i4 < 0 && result < 0) ||
-                        (i3 < 0 && i4 >= 0 && result >= 0));
-                // Carry: Set if borrow occurs (i3 < i4 in unsigned terms)
-                carryFlag = Long.compareUnsigned(i3, i4) < 0;
-                break;
-            case OP_ADD:
-                // Overflow: (sign_i3 == sign_i4) && (sign_result != sign_i3)
-                overflowFlag = ((i3 >= 0 && i4 >= 0 && result < 0) ||
-                        (i3 < 0 && i4 < 0 && result >= 0));
-                carryFlag = (i3 > 0 && i4 > 0 && result < i3) ||
-                        (i3 < 0 && i4 < 0 && result > i3) ||
-                        (i3 > 0 && i4 < 0 && result < i3) ||
-                        (i3 < 0 && i4 > 0 && result < i4);
-                break;
-            case OP_AND:
-            case OP_OR:
-                overflowFlag = false;
-                carryFlag = false;
-                break;
-        }
-        return (zeroFlag ? "1" : "0")
-            + (negativeFlag ? "1" : "0")
-            + (carryFlag ? "1" : "0")
-            + (overflowFlag ? "1" : "0");
     }
 
     private static String shiftLeft(String str, int i) {
