@@ -1,0 +1,37 @@
+ADDS("ADDS", "adds", TokenType.MNEMONIC_RRR, "10101011000", "0010"),
+SUBS("SUBS", "subs", TokenType.MNEMONIC_RRR, "11101011000", "0110"),
+ANDS("ANDS", "ands", TokenType.MNEMONIC_RRR, "11101010000", "0000"),
+
+ADD("ADD", "add", TokenType.MNEMONIC_RRR, "10001011000", "0010"),
+SUB("SUB", "sub", TokenType.MNEMONIC_RRR, "11001011000", "0110"),
+AND("AND", "and", TokenType.MNEMONIC_RRR, "10001010000", "0000"),
+ORR("ORR", "orr", TokenType.MNEMONIC_RRR, "10101010000", "0001"),
+EOR("EOR", "eor", TokenType.MNEMONIC_RRR, "11001010000", "1011"),
+
+================ I-FORMAT ===================
+ADDI("ADDI", "addi", TokenType.MNEMONIC_RRI, "1001000100", "0010"),
+SUBI("SUBI", "subi", TokenType.MNEMONIC_RRI, "1101000100", "0110"),
+ANDI("ANDI", "andi", TokenType.MNEMONIC_RRI, "1001001000", "0000"),
+ORRI("ORRI", "orri", TokenType.MNEMONIC_RRI, "1011001000", "0001"),
+EORI("EORI", "eori", TokenType.MNEMONIC_RRI, "1101001000", "1011"),
+
+ADDIS("ADDIS", "addis", TokenType.MNEMONIC_RRI, "1011000100", "0010"),
+SUBIS("SUBIS", "subis", TokenType.MNEMONIC_RRI, "1111000100", "0110"),
+ANDIS("ANDIS", "andis", TokenType.MNEMONIC_RRI, "1111001000", "0000"),
+
+LSL("LSL", "lsl", TokenType.MNEMONIC_RRI, "11010011011", "1101"),
+LSR("LSR", "lsr", TokenType.MNEMONIC_RRI, "11010011010", "1110"),
+
+def find_common(arr):
+    full = ''
+    for i in range(11):
+        if i >= len(arr[0]): 
+            cur = 'X'
+        else:
+            cur = arr[0][i]
+        for k in arr:
+            if i >= len(k) or k[i] != cur:
+                cur = 'X'
+                break
+        full += cur
+    return full

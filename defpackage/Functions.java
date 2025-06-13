@@ -134,49 +134,82 @@ public class Functions {
         int size = outputs != null ? outputs.size() : 0;
         switch (func) {
             case "control":
-                long opcode = Integer.parseInt(inputs.get(0).binaryValue, 2);
-                ControlSignals controlSignals = ControlUnit.decode(opcode);
-                strArr[0][0] = toBin(controlSignals.aluop).substring(64 - (int)Constants.ALUOPSIZE);
-                strArr[1][0] = toBin(controlSignals.movop).substring(64 - (int)Constants.MOVOPSIZE);
-                strArr[2][0] = toBin(controlSignals.memsize).substring(64 - (int)Constants.MEMSIZESIZE);
-                for (int i = 0; i < Constants.CONTROLSIZE; i++) {
-                    strArr[i + 3][0] = toBin((controlSignals.control >> (Constants.CONTROLSIZE - 1 - i)) & 1);
+                {
+                    long opcode = Integer.parseInt(inputs.get(0).binaryValue, 2);
+                    ControlSignals controlSignals = ControlUnit.decode(opcode);
+                    strArr[0][0] = toBin(controlSignals.aluop).substring(64 - (int)Constants.ALUOPSIZE);
+                    strArr[1][0] = toBin(controlSignals.movop).substring(64 - (int)Constants.MOVOPSIZE);
+                    strArr[2][0] = toBin(controlSignals.memsize).substring(64 - (int)Constants.MEMSIZESIZE);
+                    for (int i = 0; i < Constants.CONTROLSIZE; i++) {
+                        strArr[i + 3][0] = ((controlSignals.control >> (Constants.CONTROLSIZE - 1 - i)) & 1) == 1 ? "1" : "0";
+                    }
+                    break;
                 }
-
-            case "sub":
-                strArr[0][0] = toBin(i3 - i4);
-                ProcSim.outLine("Sub operation ");
+            case "signExtend":
+                int instruction = Integer.parseInt(inputs.get(0).binaryValue, 2);
+                long signExtendedValue = SignExtension.extend(instruction);
+                strArr[0][0] = toBin(signExtendedValue);
                 break;
-            case "add":
-                strArr[0][0] = toBin(i3 + i4);
-                ProcSim.outLine("Add operation ");
-                break;
-            case "and":
-                strArr[0][0] = toBin(i3 & i4);
-                ProcSim.outLine("And operation ");
-                break;
-            case "or":
-                strArr[0][0] = toBin(i3 | i4);
-                ProcSim.outLine("Or operation ");
-                break;
-            case "zero":
-                strArr[0][0] = checkZero(str2);
-                System.out.println(strArr[0][0]);
-                ProcSim.outLine("Zero operation ");
-                break;
-            case "mux":
-                strArr[0][0] = str2;
-                System.out.println(strArr[0][0]);
-                ProcSim.outLine("Mux operation ");
-                break;
+            case "flagControl":
+                {
+                    int newFlags = Integer.parseInt(inputs.get(0).binaryValue, 2);
+                    boolean setFlags = inputs.get(0).binaryValue == "1" ? true: false;
+                    sim.flagsRegister.update(setFlags, newFlags);
+                    int flags = sim.flagsRegister.getFlags();
+                    strArr[0][0] = toBin(flags).substring(64 - (int)Constants.FLAGSIZE);
+                    break;
+                }
+            case "branchControl":
+                {
+                    int opcode = Integer.parseInt(inputs.get(0).binaryValue, 2);
+                    long readData2 = Long.parseLong(inputs.get(1).binaryValue, 2);
+                    int rd = Integer.parseInt(inputs.get(2).binaryValue, 2);
+                    int flags = Integer.parseInt(inputs.get(3).binaryValue, 2);
+                    boolean branch = BranchControl.shouldBranch(opcode, readData2, rd, flags);
+                    strArr[0][0] = branch? "1" : "0";
+                    break;
+                }
+            case "alu":
+                {
+                    long a = Long.parseLong(inputs.get(0).binaryValue, 2);
+                    long b = Long.parseLong(inputs.get(1).binaryValue, 2);
+                    int shamt = Integer.parseInt(inputs.get(2).binaryValue, 2);
+                    int aluop = Integer.parseInt(inputs.get(3).binaryValue, 2);
+                    ALU.Result result = ALU.execute(a, b, shamt, aluop);
+                    strArr[0][0] = toBin(result.res);
+                    strArr[1][0] = toBin(result.flags).substring(64 - (int)Constants.FLAGSIZE);
+                    break;
+                }
+            case "mov":
+                {
+                    long readData2 = Long.parseLong(inputs.get(0).binaryValue, 2);
+                    long extended = Long.parseLong(inputs.get(1).binaryValue, 2);
+                    int movop = Integer.parseInt(inputs.get(2).binaryValue, 2);
+                    long movResult = MOV.execute(readData2, extended, movop);
+                    strArr[0][0] = toBin(movResult);
+                    break;
+                }
             case "readmem":
-                ProcSim.outLine("Reading from mem ");
-                strArr[0][0] = sim.getDoubleWordMem(i3);
-                break;
+                {
+                    long address = Long.parseLong(inputs.get(0).binaryValue, 2);
+                    int memSizeLog = Integer.parseInt(inputs.get(1).binaryValue, 2);
+                    boolean signLoad = inputs.get(2).binaryValue == "1";
+                    long readResult = sim.dataMemory.read(address, memSizeLog, signLoad);
+                    strArr[0][0] = toBin(readResult);
+                    break;
+                }
             case "writemem":
-                ProcSim.outLine("Writing to mem ");
-                sim.setDoubleWordMem(i3, str3);
-                break;
+                {
+                    long address = Long.parseLong(inputs.get(0).binaryValue, 2);
+                    long writeData = Long.parseLong(inputs.get(1).binaryValue, 2);
+                    int memSizeLog = Integer.parseInt(inputs.get(2).binaryValue, 2);
+                    sim.dataMemory.write(address, writeData, memSizeLog);
+                    break;
+                }
+            case "donothing":
+                {
+                    break;
+                }
             case "out":
                 ProcSim.outLine("Outputing bin string ");
                 if (out == null) {
@@ -275,21 +308,12 @@ public class Functions {
                     strArr[0][1] = sim.source.assembly.instr[lineIdx].strNoLbl;
                     break;
                 }
-            case "shiftleft":
-                ProcSim.outLine("Shiftleft ");
-                if (out == null) {
-                    out = "0";
-                    ProcSim.outErr("Error: OutString not set in func 'shiftleft'");
+            case "mux":
+                {
+                    strArr[0][0] = inputs.get(0).binaryValue;
+                    ProcSim.outLine("Mux operation ");
+                    break;
                 }
-                strArr[0][0] = shiftLeft(str2, Integer.parseInt(out));
-                break;
-            case "signextend":
-                ProcSim.outLine("Sign extend ");
-                strArr[0][0] = ProcFunc.signExtend(str2, Integer.parseInt(out));
-                break;
-            case "join":
-                strArr[0][0] = str2 + str3;
-                break;
         }
         if (strArr[0][0].equals("Error")) {
             ProcSim.outLine("No new vals ");

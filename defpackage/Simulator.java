@@ -16,12 +16,11 @@ class Simulator {
     String lastChangedReg = "-1";
     int lastChangedMem = -1;
     int execInstr = 0;
-    String[] mainMemory = new String[this.mainMemSize];
+    DataMemory dataMemory;
+    FlagsRegister flagsRegister;
 
     public Simulator(ProcSim procSim) {
-        for (int i = 0; i < this.mainMemSize; i++) {
-            this.mainMemory[i] = "";
-        }
+        dataMemory.reset();
         this.registers = new String[32];
         for (int i2 = 0; i2 < 32; i2++) {
             this.registers[i2] = "";
@@ -31,43 +30,10 @@ class Simulator {
     }
 
     public void resetMemoryAndRegs() {
-        for (int i = 0; i < this.mainMemSize; i++) {
-            this.mainMemory[i] = "";
-        }
+        dataMemory.reset();
         for (int i2 = 0; i2 < 32; i2++) {
             this.registers[i2] = "";
         }
-    }
-    
-    public String getDoubleWordMem(long address) {
-        int i = (int)address;
-        StringBuilder result = new StringBuilder();
-        for (int j = 0; j < 8; j++) {
-            result.append(ProcFunc.signExtend(this.mainMemory[i + j], 8));
-        }
-        return result.toString();
-    }
-    
-    public void setDoubleWordMem(long address, String str) {
-        int i = (int)address;
-        for (int j = 0; j < 8; j++) {
-            this.mainMemory[i + j] = str.substring(j * 8, (j + 1) * 8);
-        }
-        this.lastChangedMem = i;
-    }
-
-    public String getWordMem(long address) {
-        int i = (int)address;
-        return ProcFunc.signExtend(this.mainMemory[i], 8) + ProcFunc.signExtend(this.mainMemory[i + 1], 8) + ProcFunc.signExtend(this.mainMemory[i + 2], 8) + ProcFunc.signExtend(this.mainMemory[i + 3], 8);
-    }
-
-    public void setWordMem(long address, String str) {
-        int i = (int)address;
-        this.mainMemory[i] = str.substring(0, 8);
-        this.mainMemory[i + 1] = str.substring(8, 16);
-        this.mainMemory[i + 2] = str.substring(16, 24);
-        this.mainMemory[i + 3] = str.substring(24, 32);
-        this.lastChangedMem = i;
     }
 
     public void clear() {

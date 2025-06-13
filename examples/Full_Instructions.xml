@@ -14,6 +14,8 @@
 				<to name="PC" comp="ALUIncr"/>
 				<to name="PCAddress" comp="InstrMemory"/>
 				<to name="PC+4" comp="ALUBranch" />
+				<to name="PC" comp="MuxALU1SRC"/>
+				<to name="PC" comp="MuxPCTOREG"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -70,6 +72,24 @@
 		<outputBuses>
 			<output name="Opcode" bits="11">
 				<to name="Opcode" comp="Control"/>
+				<to name="Opcode" comp="BranchControl"/>
+			</output>
+			<output name="FullInstruction" bits="32">
+				<to name="FullInstruction" comp="SignExtend"/>
+			</output>
+			<output name="Rm" bits="5"/>
+				<to name="Rm" comp="MuxREG2LOC"/>
+			</output>
+			<output name="Rd" bits="5"/>
+				<to name="Rd" comp="BranchControl"/>
+				<to name="Rd" comp="MuxREG2LOC"/>
+				<to name="Rd" comp="MuxPCTOREG"/>
+			</output>
+			<output name="Rn" bits="5"/>
+				<to name="Rn" comp="MuxREG1LOC"/>
+			</output>
+			<output name="Shamt" bits="6"/>
+				<to name="Shamt" comp="ALU"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -87,6 +107,61 @@
 					</outputs>
 				</do>
 			</op>
+			<op name="FullInstruction31-0">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="31-0">
+					<inputs>
+						<in name="Instr"/>
+					</inputs>
+					<outputs>
+						<out name="FullInstruction"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="Rm20-16">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="20-16">
+					<inputs>
+						<in name="Instr"/>
+					</inputs>
+					<outputs>
+						<out name="Rm"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="Rn9-5">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="9-5">
+					<inputs>
+						<in name="Instr"/>
+					</inputs>
+					<outputs>
+						<out name="Rn"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="Rd4-0">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="4-0">
+					<inputs>
+						<in name="Instr"/>
+					</inputs>
+					<outputs>
+						<out name="Rd"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="Shamt5-0">
+				<dependsOn which="always" if="always"/>
+				<do func="split" out="5-0">
+					<inputs>
+						<in name="Instr"/>
+					</inputs>
+					<outputs>
+						<out name="Shamt"/>
+					</outputs>
+				</do>
+			</op>
 		</operations>
 	</Component>
 	
@@ -100,32 +175,49 @@
 		</inputBuses>
 		<outputBuses>
 			<output name="ALUOP" bits="6">
+				<to name="ALUOP" comp="ALU"/>
 			</output>
 			<output name="MOVOP" bits="3">
+				<to name="MOVOP" comp="MOV"/>
 			</output>
 			<output name="MEMSIZE" bits="2">
+				<to name="MEMSIZE" comp="Memory"/>
 			</output>
 			<output name="SIGNLOAD" bits="1">
+				<to name="SIGNLOAD" comp="Memory"/>
 			</output>
 			<output name="REG1LOC" bits="1">
+				<to name="REG1LOC" comp="MuxREG1LOC"/>
 			</output>
 			<output name="REG2LOC" bits="1">
+				<to name="REG2LOC" comp="MuxREG2LOC"/>
 			</output>
 			<output name="USEMOV" bits="1">
+				<to name="USEMOV" comp="MuxUSEMOV"/>
 			</output>
 			<output name="ALU1SRC" bits="1">
+				<to name="ALU1SRC" comp="MuxALU1SRC"/>
 			</output>
 			<output name="ALU2SRC" bits="1">
+				<to name="ALU2SRC" comp="MuxALU2SRC"/>
 			</output>
 			<output name="SETFLAGS" bits="1">
+				<to name="SETFLAGS" comp="FlagControl"/>
 			</output>
 			<output name="MEMREAD" bits="1">
+				<to name="MEMREAD" comp="Memory"/>
 			</output>
 			<output name="MEMWRITE" bits="1">
-			</output>			
-			<output name="REGWRITE" bits="1">
+				<to name="MEMWRITE" comp="Memory"/>
+			</output>
+			<output name="MEMTOREG" bits="1">
+				<to name="MEMTOREG" comp="MuxMEMTOREG"/>
 			</output>
 			<output name="PCTOREG" bits="1">
+				<to name="PCTOREG" comp="MuxPCTOREG"/>
+			</output>
+			<output name="REGWRITE" bits="1">
+				<to name="REGWRITE" comp="Registers"/>
 			</output>
 		</outputBuses>
 		<operations>
@@ -148,8 +240,9 @@
 						<out name="SETFLAGS"/>
 						<out name="MEMREAD"/>
 						<out name="MEMWRITE"/>
-						<out name="REGWRITE"/>
 						<out name="PCTOREG"/>
+						<out name="MEMTOREG"/>
+						<out name="REGWRITE"/>
 					</outputs>
 				</do>
 			</op>
@@ -162,12 +255,12 @@
 		<description>Set of Registers</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="ReadData" bits="64" alternativeStr="true">
-				<to name="ALUInp1" comp="Main ALU"/>
+			<output name="ReadData1" bits="64" alternativeStr="true">
+				<to name="ReadData1" comp="MuxALU1SRC"/>
 			</output>
 			<output name="ReadData2" bits="64" alternativeStr="true">
-				<to name="in0ReadData" comp="Mux4"/>
-				<to name="Write Data" comp="Memory"/>
+				<to name="ReadData2" comp="BranchControl"/>
+				<to name="ReadData2" comp="MuxALU2SRC"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -175,7 +268,7 @@
 			<input name="ReadReg2" bits="5"/>
 			<input name="WriteReg" bits="5"/>
 			<input name="WriteData" bits="64"/>
-			<input name="RegWrite" bits="1"/>
+			<input name="REGWRITE" bits="1"/>
 		</inputBuses>
 		<operations>
 			<op name="ReadReg1">
@@ -185,7 +278,7 @@
 						<in name="ReadReg1"/>
 					</inputs>
 					<outputs>
-						<out name="ReadData"/>
+						<out name="ReadData1"/>
 					</outputs>
 				</do>
 			</op>
@@ -215,332 +308,89 @@
 		</operations>
 	</Component>
 
-	<!-- Sign extend module begin -->
-	
 	<Component>
-		<name>SExtend</name>
-		<description>Split Data for Sign Extend</description>
+		<name>SignExtend</name>
+		<description>Sign Extend base on instruction</description>
 		<hidden>false</hidden>
 		<outputBuses>
-
-			<!-- DATA INPUT FOR SIGN EXTEND SUB-MODULES -->
-			<output name="BSignExtendRawInput" bits="26">
-				<to name="input" comp="BSignExtend"/>
+			<output name="SignExtended" bits="64">
+				<to name="SignExtended" comp="MuxALU2SRC"/>
 			</output>
-			<output name="CBZSignExtendRawInput" bits="19">
-				<to name="input" comp="CBZSignExtend"/>
-			</output>
-			<output name="LoadStoreSignExtendRawInput" bits="9">
-				<to name="input" comp="LoadStoreSignExtend"/>
-			</output>
-
-			<!-- SELECT INPUT FOR SIGN EXTEND MUXES -->
-			<output name="B_CBZ_Select" bits="1">
-				<to name="selectInput" comp="B_CBZ_Mux"/>
-			</output>
-			<output name="Branch_LoadStore_Select" bits="1">
-				<to name="selectInput" comp="Branch_LoadStore_Mux"/>
-			</output>
-
 		</outputBuses>
 		<inputBuses>
 			<input name="FullInstruction" bits="32"/>
 		</inputBuses>
 		<operations>
-			<op name="SplitBSignExtend">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="25-0">
-					<inputs>
-						<in name="FullInstruction"/>
-					</inputs>
-					<outputs>
-						<out name="BSignExtendRawInput"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="SplitCBZSignExtend">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="23-5">
-					<inputs>
-						<in name="FullInstruction"/>
-					</inputs>
-					<outputs>
-						<out name="CBZSignExtendRawInput"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="SplitLoadStoreSignExtend">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="20-12">
-					<inputs>
-						<in name="FullInstruction"/>
-					</inputs>
-					<outputs>
-						<out name="LoadStoreSignExtendRawInput"/>
-					</outputs>
-				</do>
-			</op>
-
-			<!-- select input -->
-			<op name="Split_B_CBZ_Select">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="31-31">
-					<inputs>
-						<in name="FullInstruction"/>
-					</inputs>
-					<outputs>
-						<out name="B_CBZ_Select"/>
-					</outputs>
-				</do>
-			</op>
-
-			<op name="Split_Branch_LoadStore_Select">
-				<dependsOn which="always" if="always"/>
-				<do func="split" out="26-26">
-					<inputs>
-						<in name="FullInstruction"/>
-					</inputs>
-					<outputs>
-						<out name="Branch_LoadStore_Select"/>
-					</outputs>
-				</do>
-			</op>
-
-		</operations>
-	</Component>
-
-
-	<!-- SIGN EXTEND SUB-MODULES -->
-	<Component>
-		<name>BSignExtend</name>
-		<description>BSignExtend</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="BSignExtended" bits="64" alternativeStr="true">
-				<to name="input0" comp="B_CBZ_Mux"/>	
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="input" bits="26"/>
-		</inputBuses>
-		<operations>
 			<op name="SignExtend">
 				<dependsOn which="always" if="always"/>
-				<do func="signextend" out="64">
+				<do func="signExtend">
 					<inputs>
-						<in name="input"/>
+						<in name="FullInstruction"/>
 					</inputs>
 					<outputs>
-						<out name="BSignExtended"/>
+						<out name="SignExtended"/>
 					</outputs>
 				</do>
 			</op>
+
 		</operations>
 	</Component>
 
 	<Component>
-		<name>CBZSignExtend</name>
-		<description>CBZSignExtend</description>
+		<name>FlagControl</name>
+		<description>Flag Control Unit</description>
 		<hidden>false</hidden>
+		<inputBuses>
+			<input name="SETFLAGS" bits="1"/>
+			<input name="NewFlags" bits="4"/>
+		</inputBuses>
 		<outputBuses>
-			<output name="CBZSignExtended" bits="64" alternativeStr="true">
-				<to name="input1" comp="B_CBZ_Mux"/>	
+			<output name="Flags" bits="4">
+				<to name="Flags" comp="BranchControl"/>
 			</output>
 		</outputBuses>
-		<inputBuses>
-			<input name="input" bits="19"/>
-		</inputBuses>
 		<operations>
-			<op name="SignExtend">
+			<op name="FlagControl">
 				<dependsOn which="always" if="always"/>
-				<do func="signextend" out="64">
+				<do func="flagControl">
 					<inputs>
-						<in name="input"/>
+						<in name="SETFLAGS"/>
+						<in name="NewFlags"/>
 					</inputs>
 					<outputs>
-						<out name="CBZSignExtended"/>
+						<out name="Flags"/>
 					</outputs>
 				</do>
 			</op>
 		</operations>
 	</Component>
-
+	
 	<Component>
-		<name>LoadStoreSignExtend</name>
-		<description>LoadStoreSignExtend</description>
+		<name>BranchControl</name>
+		<description>Branch Control Unit</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="LoadStoreSignExtendeded" bits="64" alternativeStr="true">
-				<to name="input0" comp="Branch_LoadStore_Mux"/>	
+			<output name="Branch" bits="1">
 			</output>
 		</outputBuses>
 		<inputBuses>
-			<input name="input" bits="9"/>
-		</inputBuses>
-		<operations>
-			<op name="SignExtend">
-				<dependsOn which="always" if="always"/>
-				<do func="signextend" out="64">
-					<inputs>
-						<in name="input"/>
-					</inputs>
-					<outputs>
-						<out name="LoadStoreSignExtendeded"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-	<!-- Sign Extend MUX -->
-
-	<Component>
-		<name>B_CBZ_Mux</name>
-		<description>B_CBZ_Mux</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="output" bits="64" alternativeStr="true">
-				<to name="input1" comp="Branch_LoadStore_Mux"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="selectInput" bits="1"/>
-			<input name="input0" bits="64"/>
-			<input name="input1" bits="64"/>
-		</inputBuses>
-		<operations>
-			<op name="input0">
-				<dependsOn which="selectInput" if="0"/>
-				<do func="mux">
-					<inputs>
-						<in name="input0"/>
-					</inputs>
-					<outputs>
-						<out name="output"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="input1">
-				<dependsOn which="selectInput" if="1"/>
-				<do func="mux">
-					<inputs>
-						<in name="input1"/>
-					</inputs>
-					<outputs>
-						<out name="output"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-
-	<Component>
-		<name>Branch_LoadStore_Mux</name>
-		<description>Branch_LoadStore_Mux</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="output" bits="64" alternativeStr="true">
-				<to name="in1Const" comp="Mux4"/>
-				<to name="Addr" comp="ShiftLeft"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="selectInput" bits="1"/>
-			<input name="input0" bits="64"/>
-			<input name="input1" bits="64"/>
-		</inputBuses>
-		<operations>
-			<op name="input0">
-				<dependsOn which="selectInput" if="0"/>
-				<do func="mux">
-					<inputs>
-						<in name="input0"/>
-					</inputs>
-					<outputs>
-						<out name="output"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="input1">
-				<dependsOn which="selectInput" if="1"/>
-				<do func="mux">
-					<inputs>
-						<in name="input1"/>
-					</inputs>
-					<outputs>
-						<out name="output"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-
-	<!-- Sign extend module end -->
-
-	<Component>
-		<name>ALUControl</name>
-		<description>ALU Control Unit</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="ALUOp" bits="4">
-				<to name="ALUOp" comp="Main ALU"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="ALUOp" bits="2"/>
 			<input name="Opcode" bits="11"/>
+			<input name="ReadData2" bits="64"/>
+			<input name="Rd" bits="5"/>
+			<input name="Flags" bits="4"/>
 		</inputBuses>
 		<operations>
-			<op name="control-ldur-stur">
-				<dependsOn which="ALUOp" if="00"/>
-				<dependsOn which="Opcode" if="xxxxxxxxxxx"/>
-				<do func="out" out="0010">
+			<op name="BranchControl">
+				<dependsOn which="always" if="always"/>
+				<do func="branchControl">
+					<inputs>
+						<in name="Opcode"/>
+						<in name="ReadData2"/>
+						<in name="Rd"/>
+						<in name="Flags"/>
+					</inputs>
 					<outputs>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-cbz">
-				<dependsOn which="ALUOp" if="01"/>
-				<dependsOn which="Opcode" if="xxxxxxxxxxx"/>
-				<do func="out" out="0111">
-					<outputs>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-r-add">
-				<dependsOn which="ALUOp" if="10"/>
-				<dependsOn which="Opcode" if="10001011000"/>
-				<do func="out" out="0010">
-					<outputs>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-r-subtract">
-				<dependsOn which="ALUOp" if="10"/>
-				<dependsOn which="Opcode" if="11001011000"/>
-				<do func="out" out="0110">
-					<outputs>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-r-and">
-				<dependsOn which="ALUOp" if="10"/>
-				<dependsOn which="Opcode" if="10001010000"/>
-				<do func="out" out="0000">
-					<outputs>
-						<out name="ALUOp"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="control-r-or">
-				<dependsOn which="ALUOp" if="10"/>
-				<dependsOn which="Opcode" if="10101010000"/>
-				<do func="out" out="0001">
-					<outputs>
-						<out name="ALUOp"/>
+						<out name="Branch"/>
 					</outputs>
 				</do>
 			</op>
@@ -548,133 +398,35 @@
 	</Component>
 
 	<Component>
-		<name>Main ALU</name>
+		<name>ALU</name>
 		<description>Arithmetic Logic Unit</description>
 		<hidden>false</hidden>
-		<outputBuses>
-			<output name="result" bits="64" alternativeStr="true">
-				<to name="Address" comp="Memory"/>
-				<to name="In0Result" comp="Mux3"/>
-			</output>
-			<output name="zero" bits="1">
-				<to name="ANDZeroIn" comp="ZeroAnd"/>
-			</output>
-			<output name="flags" bits="1">
-				<to name="newFlags" comp="FlagsManager"/>
-			</output>
-		</outputBuses>
 		<inputBuses>
-			<input name="ALUOp" bits="4"/>
+			<input name="ALUOP" bits="6"/>
 			<input name="ALUInp1" bits="64"/>
 			<input name="ALUInp2" bits="64"/>
+			<input name="Shamt" bits="6"/>
 		</inputBuses>
-		<operations>
-			<op name="and">
-				<dependsOn which="ALUOp" if="0000"/>
-				<do func="alu_and">
-					<inputs>
-						<in name="ALUInp1"/>
-						<in name="ALUInp2"/>
-					</inputs>
-					<outputs>
-						<out name="result"/>
-						<out name="zero"/>
-						<out name="flags"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="or">
-				<dependsOn which="ALUOp" if="0001"/>
-				<do func="alu_or">
-					<inputs>
-						<in name="ALUInp1"/>
-						<in name="ALUInp2"/>
-					</inputs>
-					<outputs>
-						<out name="result"/>
-						<out name="zero"/>
-						<out name="flags"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="add">
-				<dependsOn which="ALUOp" if="0010"/>
-				<do func="alu_add">
-					<inputs>
-						<in name="ALUInp1"/>
-						<in name="ALUInp2"/>
-					</inputs>
-					<outputs>
-						<out name="result"/>
-						<out name="zero"/>
-						<out name="flags"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="sub">
-				<dependsOn which="ALUOp" if="0110"/>
-				<do func="alu_sub">
-					<inputs>
-						<in name="ALUInp1"/>
-						<in name="ALUInp2"/>
-					</inputs>
-					<outputs>
-						<out name="result"/>
-						<out name="zero"/>
-						<out name="flags"/>
-					</outputs>
-				</do>
-			</op>
-
-			<op name="pass-input-b">
-				<dependsOn which="ALUOp" if="0111"/>
-				<do func="mux">
-					<inputs>
-						<in name="ALUInp2"/>
-					</inputs>
-					<outputs>
-						<out name="result"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="pass-input-b-zero">
-				<dependsOn which="ALUOp" if="0111"/>
-				<do func="zero">
-					<inputs>
-						<in name="ALUInp2"/>
-					</inputs>
-					<outputs>
-						<out name="zero"/>
-					</outputs>
-				</do>
-			</op>
-			
-		</operations>
-	</Component>
-
-	<Component>
-		<name>ZeroAnd</name>
-		<description>AND - for Zero Branch</description>
-		<hidden>false</hidden>
 		<outputBuses>
-			<output name="AND1Out" bits="1">
-				<to name="ZeroBranch" comp="OrBranch"/>
+			<output name="ALUResult" bits="64" alternativeStr="true">
+				<to name="ALUResult" comp="MuxUSEMOV"/>
+			</output>
+			<output name="Flags" bits="4">
 			</output>
 		</outputBuses>
-		<inputBuses>
-			<input name="BranchIn" bits="1"/>
-			<input name="ANDZeroIn" bits="1"/>
-		</inputBuses>
 		<operations>
-			<op name="and">
+			<op name="ALU">
 				<dependsOn which="always" if="always"/>
-				<do func="and">
+				<do func="alu">
 					<inputs>
-						<in name="BranchIn"/>
-						<in name="ANDZeroIn"/>
+						<in name="ALUInp1"/>
+						<in name="ALUInp2"/>
+						<in name="Shamt"/>
+						<in name="ALUOP"/>
 					</inputs>
 					<outputs>
-						<out name="AND1Out"/>
+						<out name="ALUResult"/>
+						<out name="Flags"/>
 					</outputs>
 				</do>
 			</op>
@@ -682,28 +434,30 @@
 	</Component>
 
 	<Component>
-		<name>OrBranch</name>
-		<description>Or unconditional branch - zero branch</description>
+		<name>MOV</name>
+		<description>MOV</description>
 		<hidden>false</hidden>
+		<inputBuses>
+			<input name="ReadData2" bits="64"/>
+			<input name="Extended" bits="64"/>
+			<input name="MOVOP" bits="3"/>
+		</inputBuses>
 		<outputBuses>
-			<output name="PCSrc" bits="1">
-				<to name="PCSrc" comp="Mux2"/>
+			<output name="MOVResult" bits="64" alternativeStr="true">
+				<to name="MOVResult" comp="MuxUSEMOV"/>
 			</output>
 		</outputBuses>
-		<inputBuses>
-			<input name="UncondBranch" bits="1"/>
-			<input name="ZeroBranch" bits="1"/>
-		</inputBuses>
 		<operations>
-			<op name="or">
+			<op name="MOV">
 				<dependsOn which="always" if="always"/>
-				<do func="or">
+				<do func="mov">
 					<inputs>
-						<in name="UncondBranch"/>
-						<in name="ZeroBranch"/>
+						<in name="ReadData2"/>
+						<in name="Extended"/>
+						<in name="MOVOP"/>
 					</inputs>
 					<outputs>
-						<out name="PCSrc"/>
+						<out name="MOVResult"/>
 					</outputs>
 				</do>
 			</op>
@@ -716,22 +470,26 @@
 		<description>Data Memory</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="ReadData" bits="64" optional="true" optionalDependsOn="MemRead"  optionalComp="Control" optionalIf="0" alternativeStr="true">
-				<to name="In1Data" comp="Mux3"/>
+			<output name="ReadData" bits="64" optional="true" optionalDependsOn="MEMREAD"  optionalComp="Control" optionalIf="0" alternativeStr="true">
+				<to name="ReadData" comp="MuxMEMTOREG"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
 			<input name="Address" bits="64"/>
-			<input name="Write Data" bits="64"/>
-			<input name="MemWrite" bits="1"/>
-			<input name="MemRead" bits="1"/>
+			<input name="WriteData" bits="64"/>
+			<input name="MEMREAD" bits="1"/>
+			<input name="MEMWRITE" bits="1"/>
+			<input name="MEMSIZE" bits="2"/>
+			<input name="SIGNLOAD" bits="1"/>
 		</inputBuses>
 		<operations>
 			<op name="readmem">
-				<dependsOn which="MemRead" if="1"/>
+				<dependsOn which="MEMREAD" if="1"/>
 				<do func="readmem">
 					<inputs>
 						<in name="Address"/>
+						<in name="MEMSIZE"/>
+						<in name="SIGNLOAD"/>
 					</inputs>
 					<outputs>
 						<out name="ReadData"/>
@@ -739,11 +497,12 @@
 				</do>
 			</op>
 			<op name="writemem">
-				<dependsOn which="MemWrite" if="1"/>
+				<dependsOn which="MEMWRITE" if="1"/>
 				<do func="writemem">
 					<inputs>
 						<in name="Address"/>
-						<in name="Write Data"/>
+						<in name="WriteData"/>
+						<in name="MEMSIZE"/>
 					</inputs>
 				</do>
 			</op>
@@ -755,230 +514,381 @@
 		</operations>
 	</Component>
 
+	<!-- MuxREG1LOC -->
 	<Component>
-		<name>Mux3</name>
-		<description>Multiplexor ALU result or data</description>
+		<name>XZR</name>
+		<description>Output index of XZR</description>
+		<hidden>true</hidden>
+		<outputBuses>
+			<output name="XZR" bits="5" alternativeStr="true">
+				<to name="XZR" comp="MuxREG1LOC"/>
+			</output>
+		</outputBuses>
+		<operations>
+			<op name="XZR">
+				<dependsOn which="always" if="always"/>
+				<do func="out" out="11111">
+					<outputs>
+						<out name="XZR"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+
+	<Component>
+		<name>MuxREG1LOC</name>
+		<description>Multiplexor XZR or Rn</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="Data" bits="64"  optional="true" finalBus="true" alternativeStr="true">
+			<output name="ReadReg1" bits="5">
+				<to name="ReadReg1" comp="Registers"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="REG1LOC" bits="1"/>
+			<input name="XZR" bits="5"/>
+			<input name="Rn" bits="5"/>
+		</inputBuses>
+		<operations>
+			<op name="XZR">
+				<dependsOn which="REG1LOC" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="XZR"/>
+					</inputs>
+					<outputs>
+						<out name="ReadReg1"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="Rn">
+				<dependsOn which="REG1LOC" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="Rn"/>
+					</inputs>
+					<outputs>
+						<out name="ReadReg1"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+	<!-- End MuxREG1LOC -->
+
+	<!-- MuxREG2LOC-->
+		<Component>
+		<name>MuxREG2LOC</name>
+		<description>Multiplexor Rd or Rm</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="ReadReg2" bits="5">
+				<to name="ReadReg2" comp="Registers"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="REG2LOC" bits="1"/>
+			<input name="Rd" bits="5"/>
+			<input name="Rm" bits="5"/>
+		</inputBuses>
+		<operations>
+			<op name="Rd">
+				<dependsOn which="REG2LOC" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="Rd"/>
+					</inputs>
+					<outputs>
+						<out name="ReadReg2"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="Rm">
+				<dependsOn which="REG2LOC" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="Rm"/>
+					</inputs>
+					<outputs>
+						<out name="ReadReg2"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+	<!-- End MuxREG2LOC-->
+
+	<!-- MuxPCTOREG-->
+	<Component>
+		<name>XLR</name>
+		<description>Output index of XLR</description>
+		<hidden>true</hidden>
+		<outputBuses>
+			<output name="XLR" bits="5" alternativeStr="true">
+				<to name="XLR" comp="MuxPCTOREG"/>
+			</output>
+		</outputBuses>
+		<operations>
+			<op name="XLR">
+				<dependsOn which="always" if="always"/>
+				<do func="out" out="11110">
+					<outputs>
+						<out name="XLR"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+
+	<Component>
+		<name>MuxPCTOREG</name>
+		<description>Multiplexor XLR or Rd</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="WriteReg" bits="5">
+				<to name="WriteReg" comp="Registers"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="PCTOREG" bits="1"/>
+			<input name="XLR" bits="5"/>
+			<input name="Rd" bits="5"/>
+		</inputBuses>
+		<operations>
+			<op name="XLR">
+				<dependsOn which="PCTOREG" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="XLR"/>
+					</inputs>
+					<outputs>
+						<out name="WriteReg"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="Rd">
+				<dependsOn which="PCTOREG" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="Rd"/>
+					</inputs>
+					<outputs>
+						<out name="WriteReg"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+	<!-- End MuxPCTOREG-->
+
+	<!-- MuxALU1SRC-->
+		<Component>
+		<name>MuxALU1SRC</name>
+		<description>Multiplexor for ALU input 1, selects PC or ReadData1</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="ALUInp1" bits="64">
+				<to name="ALUInp1" comp="ALU"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="ALU1SRC" bits="1"/>
+			<input name="PC" bits="64"/>
+			<input name="ReadData1" bits="64"/>
+		</inputBuses>
+		<operations>
+			<op name="SelectReadData1">
+				<dependsOn which="ALU1SRC" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="ReadData1"/>
+					</inputs>
+					<outputs>
+						<out name="ALUInp1"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="SelectPC">
+				<dependsOn which="ALU1SRC" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="PC"/>
+					</inputs>
+					<outputs>
+						<out name="ALUInp1"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+	<!-- End MuxALU1SRC-->
+
+	<!-- MuxALU2SRC -->
+	<Component>
+		<name>MuxALU2SRC</name>
+		<description>Multiplexor for ALU input 2, selects SignExtended or ReadData2</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="ALUInp2" bits="64">
+				<to name="ALUInp2" comp="ALU"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="ALU2SRC" bits="1"/>
+			<input name="SignExtended" bits="64"/>
+			<input name="ReadData2" bits="64"/>
+		</inputBuses>
+		<operations>
+			<op name="SelectReadData2">
+				<dependsOn which="ALU2SRC" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="ReadData2"/>
+					</inputs>
+					<outputs>
+						<out name="ALUInp2"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="SelectSignExtended">
+				<dependsOn which="ALU2SRC" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="SignExtended"/>
+					</inputs>
+					<outputs>
+						<out name="ALUInp2"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+	<!-- End MuxALU2SRC-->
+
+	<!-- MuxUSEMOV-->
+	<Component>
+		<name>MuxUSEMOV</name>
+		<description>Multiplexor selects MOVResult or ALUResult</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="Result" bits="64">
+				<to name="Result" comp="MuxMEMTOREG"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="USEMOV" bits="1"/>
+			<input name="MOVResult" bits="64"/>
+			<input name="ALUResult" bits="64"/>
+		</inputBuses>
+		<operations>
+			<op name="SelectALUResult">
+				<dependsOn which="USEMOV" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="ALUResult"/>
+					</inputs>
+					<outputs>
+						<out name="Result"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="SelectMOVResult">
+				<dependsOn which="USEMOV" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="MOVResult"/>
+					</inputs>
+					<outputs>
+						<out name="Result"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+	<!-- End MuxUSEMOV-->
+
+	<!-- MuxMEMTOREG -->
+	<Component>
+		<name>MuxMEMTOREG</name>
+		<description>Multiplexor selects ReadData or Result</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="MEMTOREGResult" bits="64">
+				<to name="MEMTOREGResult" comp="MuxPCTOREG"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="MEMTOREG" bits="1"/>
+			<input name="Result" bits="64"/>
+			<input name="ReadData" bits="64"/>
+		</inputBuses>
+		<operations>
+			<op name="SelectResult">
+				<dependsOn which="MEMTOREG" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="Result"/>
+					</inputs>
+					<outputs>
+						<out name="MEMTOREGResult"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="SelectReadData">
+				<dependsOn which="MEMTOREG" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="ReadData"/>
+					</inputs>
+					<outputs>
+						<out name="MEMTOREGResult"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+	<!-- End MuxMEMTOREG-->
+
+	<!-- MuxPCTOREG -->
+	<Component>
+		<name>MuxPCTOREG</name>
+		<description>Multiplexor selects PC or MEMTOREGResult</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="WriteData" bits="64">
 				<to name="WriteData" comp="Registers"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
-			<input name="In1Data" bits="64"/>
-			<input name="In0Result" bits="64"/>
-			<input name="MemOrResultToReg" bits="1"/>
+			<input name="PCTOREG" bits="1"/>
+			<input name="MEMTOREGResult" bits="64"/>
+			<input name="PC" bits="64"/>
 		</inputBuses>
 		<operations>
-			<op name="MemToReg">
-				<dependsOn which="MemOrResultToReg" if="1"/>
+			<op name="SelectMEMTOREGResult">
+				<dependsOn which="PCTOREG" if="0"/>
 				<do func="mux">
 					<inputs>
-						<in name="In1Data"/>
+						<in name="MEMTOREGResult"/>
 					</inputs>
 					<outputs>
-						<out name="Data"/>
+						<out name="WriteData"/>
 					</outputs>
 				</do>
 			</op>
-			<op name="resulttoreg">
-				<dependsOn which="MemOrResultToReg" if="0"/>
+			<op name="SelectPC">
+				<dependsOn which="PCTOREG" if="1"/>
 				<do func="mux">
 					<inputs>
-						<in name="In0Result"/>
-					</inputs>
-					<outputs>
-						<out name="Data"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-	
-	<Component>
-		<name>ALUBranch</name>
-		<description>Calc Branch Target ALU</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="result" bits="64" alternativeStr="true">
-				<to name="in1ALUBranch" comp="Mux2"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="PC+4" bits="64"/>
-			<input name="AddressField" bits="64"/>
-		</inputBuses>
-		<operations>
-			<op name="add">
-				<do func="add">
-					<inputs>
-						<in name="PC+4"/>
-						<in name="AddressField"/>
-					</inputs>
-					<outputs>
-						<out name="result"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-
-	<Component>
-		<name>Mux2</name>
-		<description>Multiplexor branch or +4</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="newPC" bits="64" alternativeStr="true">
-				<to name="newPC" comp="PC"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="PCSrc" bits="1"/>
-			<input name="in1ALUBranch" bits="64"/>
-			<input name="in0PCIncrem" bits="64"/>
-		</inputBuses>
-		<operations>
-			<op name="branchtoPC">
-				<dependsOn which="PCSrc" if="1"/>
-				<do func="mux">
-					<inputs>
-						<in name="in1ALUBranch"/>
-					</inputs>
-					<outputs>
-						<out name="newPC"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="IncremPC">
-				<dependsOn which="PCSrc" if="0"/>
-				<do func="mux">
-					<inputs>
-						<in name="in0PCIncrem"/>
-					</inputs>
-					<outputs>
-						<out name="newPC"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-	
-	
-	<Component>
-		<name>Mux4</name>
-		<description>Multiplexor ReadData or Const</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="ALUInp2" bits="64" alternativeStr="true">
-				<to name="ALUInp2" comp="Main ALU"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="ALUSrc" bits="1"/>
-			<input name="in0ReadData" bits="64"/>
-			<input name="in1Const" bits="64"/>
-		</inputBuses>
-		<operations>
-			<op name="ReadData">
-				<dependsOn which="ALUSrc" if="0"/>
-				<do func="mux">
-					<inputs>
-						<in name="in0ReadData"/>
-					</inputs>
-					<outputs>
-						<out name="ALUInp2"/>
-					</outputs>
-				</do>
-			</op>
-			<op name="Const">
-				<dependsOn which="ALUSrc" if="1"/>
-				<do func="mux">
-					<inputs>
-						<in name="in1Const"/>
-					</inputs>
-					<outputs>
-						<out name="ALUInp2"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-
-	
-	<Component>
-		<name>ShiftLeft</name>
-		<description>Shift Left 2 (= inp * 4)</description>
-		<hidden>false</hidden>
-		<outputBuses>
-			<output name="Addr*4" bits="64" alternativeStr="true">
-				<to name="AddressField" comp="ALUBranch"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="Addr" bits="64"/>
-		</inputBuses>
-		<operations>
-			<op name="ShiftLeft2">
-				<dependsOn which="always" if="always"/>
-				<do func="shiftleft" out="2">
-					<inputs>
-						<in name="Addr"/>
-					</inputs>
-					<outputs>
-						<out name="Addr*4"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-		
-	<Component>
-		<name>Out4</name>
-		<description>For incrementing PC by 4</description>
-		<hidden>true</hidden>
-		<outputBuses>
-			<output name="out4" bits="64" alternativeStr="true">
-				<to name="Increm4" comp="ALUIncr"/>
-			</output>
-		</outputBuses>
-		<operations>
-			<op name="out4">
-				<dependsOn which="always" if="always"/>
-				<do func="out" out="100">
-					<outputs>
-						<out name="out4"/>
-					</outputs>
-				</do>
-			</op>
-		</operations>
-	</Component>
-	
-	<Component>
-		<name>ALUIncr</name>
-		<description>Increment PC ALU</description>
-		<outputBuses>
-			<output name="PC+4" bits="64" alternativeStr="true">
-				<to name="in0PCIncrem" comp="Mux2"/>
-			</output>
-		</outputBuses>
-		<inputBuses>
-			<input name="Increm4" bits="64"/>
-			<input name="PC" bits="64"/>			
-		</inputBuses>
-		<operations>
-			<op name="increm4">
-				<dependsOn which="always" if="always"/>
-				<do func="add">
-					<inputs>
-						<in name="Increm4"/>
 						<in name="PC"/>
 					</inputs>
 					<outputs>
-						<out name="PC+4"/>
+						<out name="WriteData"/>
 					</outputs>
 				</do>
 			</op>
 		</operations>
 	</Component>
-
+	<!-- End MuxPCTOREG -->
 </Simulator>

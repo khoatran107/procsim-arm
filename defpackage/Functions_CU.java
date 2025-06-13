@@ -225,3 +225,204 @@ class ControlUnit {
         return opcode >> 9;
     }
 }
+
+
+// Sign Extension module equivalent
+class SignExtension {
+    public static long extend(int instruction) {
+        int opcode = instruction >>> (Constants.INSTSIZE - Constants.OPCODESIZE);
+        int shortValue = instruction & ((1 << Constants.SHORTSIZE) - 1);
+        
+        long alu_imm = (shortValue >> 10) & 0xFFF;
+        long mov_imm = (shortValue >> 5) & 0xFFFF;
+        long b_addr = BitUtils.signExtend((shortValue & 0x3FFFFFF) << 2, 28);
+        long cb_addr = BitUtils.signExtend(((shortValue >> 5) & 0x7FFFF) << 2, 21);
+        long dt_addr = BitUtils.signExtend((shortValue >> 12) & 0x1FF, 9);
+        
+        if ((opcode & Constants.B_MASK) == Constants.B_BITSET) {
+            return b_addr;
+        } else if ((opcode & Constants.CB_MASK) == Constants.CB_BITSET ||
+                   (opcode & Constants.BFLAG_MASK) == Constants.BFLAG_BITSET) {
+            return cb_addr;
+        } else if ((opcode & Constants.MOV_MASK) == Constants.MOV_BITSET) {
+            return mov_imm;
+        } else if ((opcode & Constants.LDUR_MASK) == Constants.LDUR_BITSET ||
+                   (opcode & Constants.STUR_MASK) == Constants.STUR_BITSET) {
+            return dt_addr;
+        } else {
+            return alu_imm;
+        }
+    }
+}
+
+// Flags Register module equivalent
+class FlagsRegister {
+    private int flags = 0;
+
+    public void update(boolean setflags, int flagstoset) {
+        if (setflags) {
+            this.flags = flagstoset & 0xF;
+        }
+    }
+    
+    public void reset() {
+        this.flags = 0;
+    }
+    
+    public int getFlags() {
+        return flags;
+    }
+}
+
+
+// Branch Control module equivalent
+class BranchControl {
+    public static boolean shouldBranch(int opcode, long readreg2, int rd, int flags) {
+        boolean[] flagbranch = new boolean[16];
+        boolean unconditional, conditional, flagbased;
+        boolean zero;
+        boolean n, z, v, c;
+        
+        // get whether readreg2 is zero
+        zero = (readreg2 == 0);
+        
+        // disassemble the flags
+        n = ((flags >> 3) & 1) == 1;
+        z = ((flags >> 2) & 1) == 1;
+        v = ((flags >> 1) & 1) == 1;
+        c = (flags & 1) == 1;
+        
+        // branch based on flags
+        flagbranch[0x0] = z;                    // B.EQ
+        flagbranch[0x1] = !z;                   // B.NE
+        flagbranch[0x2] = c;                    // B.HS
+        flagbranch[0x3] = !c;                   // B.LO
+        flagbranch[0x4] = n;                    // B.MI
+        flagbranch[0x5] = !n;                   // B.PL
+        flagbranch[0x6] = v;                    // B.VS
+        flagbranch[0x7] = !v;                   // B.VC
+        flagbranch[0x8] = !z && c;              // B.HI
+        flagbranch[0x9] = !(!z && c);           // B.LS
+        flagbranch[0xa] = (n == v);             // B.GE
+        flagbranch[0xb] = (n != v);             // B.LT
+        flagbranch[0xc] = !z && (n == v);       // B.GT
+        flagbranch[0xd] = !(!z && (n == v));    // B.LE
+        flagbranch[0xe] = false;
+        flagbranch[0xf] = false;
+        
+        // whether to unconditionally branch
+        unconditional = (opcode & Constants.B_MASK) == Constants.B_BITSET;
+        
+        // whether conditionally branch based on the state of zero
+        conditional = ((opcode & Constants.CB_MASK) == Constants.CB_BITSET) &&
+                     (((opcode >> 3) & 1) == 0 && zero) || (((opcode >> 3) & 1) == 1 && !zero);
+        
+        // whether to conditionally branch based on flags
+        flagbased = ((opcode & Constants.BFLAG_MASK) == Constants.BFLAG_BITSET) &&
+                   flagbranch[rd & 0xF];
+        
+        return unconditional || conditional || flagbased;
+    }
+}
+
+
+// ALU module equivalent
+class ALU {
+    public static class Result {
+        public long res;
+        public int flags;
+        
+        public Result(long res, int flags) {
+            this.res = res;
+            this.flags = flags;
+        }
+    }
+    
+    public static Result execute(long a, long b, int shamt, int aluop) {
+        long[] array = new long[4];
+        long useda, usedb;
+        boolean shift, shdir;
+        
+        // value of operands to be used
+        useda = ((aluop >> 5) & 1) == 1 ? (~a + 1) & 0x1FFFFFFFFL : a & 0x1FFFFFFFFL;
+        usedb = ((aluop >> 4) & 1) == 1 ? (~b + 1) & 0x1FFFFFFFFL : b & 0x1FFFFFFFFL;
+        
+        // set shift parameters
+        shift = ((aluop >> 3) & 1) == 1;
+        shdir = ((aluop >> 2) & 1) == 1;
+        
+        // operations
+        array[(int)Constants.ALUOP_AND] = useda & usedb;
+        array[(int)Constants.ALUOP_ORR] = useda | usedb;
+        array[(int)Constants.ALUOP_ADD] = useda + usedb;
+        array[(int)Constants.ALUOP_EOR] = useda ^ usedb;
+        
+        // result
+        long res = array[aluop & 0x3] & 0xFFFFFFFFFFFFFFFFL;
+        if (shift) {
+            if (shdir) {
+                res = res << shamt;
+            } else {
+                res = res >>> shamt;
+            }
+        }
+        res = res & 0xFFFFFFFFFFFFFFFFL;
+        
+        // flags (NZVC)
+        int flags = 0;
+        flags |= ((res >> 63) & 1) << 3; // N
+        flags |= (res == 0 ? 1 : 0) << 2; // Z
+        flags |= (((usedb >> 63) == (useda >> 63)) && ((res >> 63) != (useda >> 63)) ? 1 : 0) << 1; // V
+        flags |= ((array[aluop & 0x3] >> 64) & 1); // C
+        
+        return new Result(res, flags);
+    }
+}
+
+// MOV module equivalent
+class MOV {
+    public static long execute(long readreg, long extended, int movop) {
+        long[] array = new long[4];
+        boolean movkeep = ((movop >> 2) & 1) == 1;
+        
+        array[(int)Constants.MOVSHIFT48] = ~(0xFFFFL << 48);
+        array[(int)Constants.MOVSHIFT32] = ~(0xFFFFL << 32);
+        array[(int)Constants.MOVSHIFT16] = ~(0xFFFFL << 16);
+        array[(int)Constants.MOVSHIFT00] = ~0xFFFFL;
+        
+        return (movkeep ? readreg & array[movop & 0x3] : 0) | extended;
+    }
+}
+
+
+// Data Memory module equivalent
+class DataMemory {
+    private byte[] data = new byte[(int)Constants.MEMDATASIZE];
+    
+    public void reset() {
+        // Reset memory to zeros or load from file
+        for (int i = 0; i < data.length; i++) {
+            data[i] = 0;
+        }
+    }
+    
+    public long read(long addr, int memSizeLog, boolean signLoad) {
+        int memSize = 1 << memSizeLog;
+        long result = 0;
+        for (int i = 0; i < memSize; i++) {
+            result |= (data[(int)(addr + i)] & 0xFF) << (i * 8);
+        }
+        if (signLoad) {
+            long shift = 64 - memSize * 8;
+            result = (result << shift) >> shift;
+        }
+        return result;
+    }
+    
+    public void write(long addr, long value, int memSizeLog) {
+        int memSize = 1 << memSizeLog;
+        for (int i = 0; i < memSize; i++) {
+            data[(int)(addr + i)] = (byte)((value >> (i * 8)) & 0xFF);
+        }
+    }
+}
