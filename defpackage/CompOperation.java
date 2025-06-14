@@ -42,7 +42,7 @@ public class CompOperation {
     public boolean doOp() {
         if (doCheck()) {
             String[][] doOp = Functions.doOp(this.functionOp, this.inputsToOp, this.outputs, this.out);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 20; i++) {
                 if (!doOp[i][0].equals("Error") && i < this.outputs.size()) {
                     ProcBus procBus = this.outputs.get(i);
                     if (doOp[i][1].equals("Exit")) {

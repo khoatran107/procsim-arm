@@ -240,9 +240,9 @@
 						<out name="SETFLAGS"/>
 						<out name="MEMREAD"/>
 						<out name="MEMWRITE"/>
+						<out name="REGWRITE"/>
 						<out name="PCTOREG"/>
 						<out name="MEMTOREG"/>
-						<out name="REGWRITE"/>
 					</outputs>
 				</do>
 			</op>
@@ -315,7 +315,7 @@
 		<description>Sign Extend base on instruction</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="SignExtended" bits="64">
+			<output name="SignExtended" bits="64" alternativeStr="true">
 				<to name="SignExtended" comp="MuxALU2SRC"/>
 				<to name="Extended" comp="MOV"/>
 			</output>
@@ -693,7 +693,7 @@
 		<description>Multiplexor for ALU input 1, selects PC or ReadData1</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="ALUInp1" bits="64">
+			<output name="ALUInp1" bits="64" alternativeStr="true">
 				<to name="ALUInp1" comp="ALU"/>
 			</output>
 		</outputBuses>
@@ -735,7 +735,7 @@
 		<description>Multiplexor for ALU input 2, selects SignExtended or ReadData2</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="ALUInp2" bits="64">
+			<output name="ALUInp2" bits="64" alternativeStr="true">
 				<to name="ALUInp2" comp="ALU"/>
 			</output>
 		</outputBuses>
@@ -777,7 +777,7 @@
 		<description>Multiplexor selects MOVResult or ALUResult</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="Result" bits="64">
+			<output name="Result" bits="64" alternativeStr="true">
 				<to name="Result" comp="MuxMEMTOREG"/>
 				<to name="Result" comp="MuxBranch"/>
 				<to name="Address" comp="Memory"/>
@@ -821,7 +821,7 @@
 		<description>Multiplexor selects ReadData or Result</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="MEMTOREGResult" bits="64">
+			<output name="MEMTOREGResult" bits="64" alternativeStr="true">
 				<to name="MEMTOREGResult" comp="MuxPCTOREG2"/>
 			</output>
 		</outputBuses>
@@ -863,7 +863,7 @@
 		<description>Multiplexor selects PC or MEMTOREGResult</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="WriteData" bits="64">
+			<output name="WriteData" bits="64" optional="true" finalBus="true">
 				<to name="WriteData" comp="Registers"/>
 			</output>
 		</outputBuses>

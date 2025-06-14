@@ -24,15 +24,12 @@ class Constants {
     public static final long SIGNLOAD = 11;
     public static final long REG1LOC = 10;
     public static final long REG2LOC = 9;
-    public static final long IDEX_CONTROLSIZE = 9;
     public static final long USEMOV = 8;
     public static final long ALU1SRC = 7;
     public static final long ALU2SRC = 6;
-    public static final long EXMEM_CONTROLSIZE = 6;
     public static final long SETFLAGS = 5;
     public static final long MEMREAD = 4;
     public static final long MEMWRITE = 3;
-    public static final long MEMWB_CONTROLSIZE = 3;
     public static final long REGWRITE = 2;
     public static final long PCTOREG = 1;
     public static final long MEMTOREG = 0;
@@ -51,8 +48,7 @@ class Constants {
     
     // From memory.vh
     public static final long MEMSIZESIZE = 2;
-    public static final long MEMPROGSIZE = 128;
-    public static final long MEMDATASIZE = 128;
+    public static final long MEMDATASIZE = 0x1000;
     
     // From movop.vh
     public static final long MOVOPSIZE = 3;
@@ -84,6 +80,10 @@ class Constants {
     public static final long STUR_BITSET = 0b00111000000;
     public static final long MOV_MASK = 0b11011111100;
     public static final long MOV_BITSET = 0b11010010100;
+
+    public static final long SIGNLOAD_MASK = 0b10111000100;
+    public static final long SIGNLOAD_BITSET = 0b10111000100;
+    
     
     // From registers.vh
     public static final long XLR = 30;
@@ -164,7 +164,7 @@ class ControlUnit {
                    (ri_upper == 0b111 && ri_lower == 0b100));       // SUB(I)S
         
         long control = 0;
-        control = BitUtils.setBit(control, Constants.SIGNLOAD, ((0b10111000100 & opcode) != 0) ? 1 : 0);
+        control = BitUtils.setBit(control, Constants.SIGNLOAD, ((Constants.SIGNLOAD_MASK & opcode) == Constants.SIGNLOAD_BITSET) ? 1 : 0);
         control = BitUtils.setBit(control, Constants.REG1LOC, (op_cb || op_shift || op_bflag) ? 1 : 0);
         control = BitUtils.setBit(control, Constants.REG2LOC, (op_cb || op_ldur || op_stur || op_mov) ? 1 : 0);
         control = BitUtils.setBit(control, Constants.USEMOV, op_mov ? 1 : 0);
@@ -173,7 +173,8 @@ class ControlUnit {
         control = BitUtils.setBit(control, Constants.SETFLAGS, (op_ri && setflags) ? 1 : 0);
         control = BitUtils.setBit(control, Constants.MEMREAD, op_ldur ? 1 : 0);
         control = BitUtils.setBit(control, Constants.MEMWRITE, op_stur ? 1 : 0);
-        control = BitUtils.setBit(control, Constants.PCTOREG, (op_b && ((opcode >> (Constants.OPCODESIZE - 1)) & 1) == 1) ? 1 : 0);
+        control = BitUtils.setBit(control, Constants.PCTOREG, (op_b && (((opcode >> (Constants.OPCODESIZE - 1)) & 1) == 1)) ? 1 : 0);
+        System.out.println("op_b " + op_b);
         control = BitUtils.setBit(control, Constants.MEMTOREG, op_ldur ? 1 : 0);
         control = BitUtils.setBit(control, Constants.REGWRITE, 
             (BitUtils.getBit(control, Constants.PCTOREG) == 1 || 
@@ -229,9 +230,9 @@ class ControlUnit {
 
 // Sign Extension module equivalent
 class SignExtension {
-    public static long extend(int instruction) {
-        int opcode = instruction >>> (Constants.INSTSIZE - Constants.OPCODESIZE);
-        int shortValue = instruction & ((1 << Constants.SHORTSIZE) - 1);
+    public static long extend(long instruction) {
+        long opcode = instruction >>> (Constants.INSTSIZE - Constants.OPCODESIZE);
+        long shortValue = instruction & ((1 << Constants.SHORTSIZE) - 1);
         
         long alu_imm = (shortValue >> 10) & 0xFFF;
         long mov_imm = (shortValue >> 5) & 0xFFFF;

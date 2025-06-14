@@ -119,6 +119,7 @@ public class AnimThrd implements Runnable {
                 return;
             }
         }
+        System.out.printf("numBuses = %d\n", this.animationList.get(this.numAnimItem).numBuses);
         for (int i = 0; i < this.animationList.get(this.numAnimItem).numBuses; i++) {
             addAnim(this.animationList.get(this.numAnimItem).bus[i], true);
         }

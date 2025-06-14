@@ -143,10 +143,12 @@ public class Functions {
                     for (int i = 0; i < Constants.CONTROLSIZE; i++) {
                         strArr[i + 3][0] = ((controlSignals.control >> (Constants.CONTROLSIZE - 1 - i)) & 1) == 1 ? "1" : "0";
                     }
+                    System.out.printf("opcode = %x\n", opcode);
+                    System.out.printf("control = %x\n", controlSignals.control);
                     break;
                 }
             case "signExtend":
-                int instruction = Integer.parseInt(inputs.get(0).binaryValue, 2);
+                long instruction = Long.parseLong(inputs.get(0).binaryValue, 2);
                 long signExtendedValue = SignExtension.extend(instruction);
                 strArr[0][0] = toBin(signExtendedValue);
                 break;

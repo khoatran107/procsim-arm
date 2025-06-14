@@ -111,8 +111,7 @@ class ParseSimXML {
         if (node == null) {
             return;
         }
-        System.out.println("Current Node: " + node.getNodeValue());
-
+        
         switch (node.getNodeType()) {
             case 1:
                 String nodeName = node.getNodeName();

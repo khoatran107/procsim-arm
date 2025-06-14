@@ -278,14 +278,14 @@ public class DiagCanvas extends JScrollPane {
     private void drawComponent(int i, Graphics2D graphics2D, Font font) {
         PComponent pComponent = this.comps.get(i);
         if (pComponent.x != -999) {
-            boolean drawBackup = false;
+            boolean drawBackup = true;
             if (!pComponent.imgPath.isEmpty()) {
                 try {
                     BufferedImage image = ImageIO.read(new File(pComponent.imgPath));
                     graphics2D.drawImage(image, pComponent.x, pComponent.y, pComponent.width, pComponent.height, null);
+                    drawBackup = false;
                 } catch (IOException e) {
                     System.err.println("Error loading image: " + pComponent.imgPath);
-                    drawBackup = true;
                 }
             }
             if (drawBackup) {

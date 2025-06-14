@@ -36,7 +36,7 @@ public class PComponent {
         this.buses = new Vector<>();
         this.tmpInputs = new String[2][100];
         this.curIn = 0;
-        this.tmpOutputs = new String[9][100];
+        this.tmpOutputs = new String[20][100];
         this.curOut = 0;
         this.tmpOutConnectsToComp = new String[50][100];
         this.tmpOutConnectsToInput = new String[50][100];
@@ -63,7 +63,7 @@ public class PComponent {
         this.buses = new Vector<>();
         this.tmpInputs = new String[2][100];
         this.curIn = 0;
-        this.tmpOutputs = new String[9][100];
+        this.tmpOutputs = new String[20][100];
         this.curOut = 0;
         this.tmpOutConnectsToComp = new String[50][100];
         this.tmpOutConnectsToInput = new String[50][100];
