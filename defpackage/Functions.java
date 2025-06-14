@@ -210,6 +210,13 @@ public class Functions {
                 {
                     break;
                 }
+            case "incrementPC":
+                {
+                    long PC = Long.parseLong(inputs.get(0).binaryValue, 2);
+                    long newPC = PC + 4;
+                    strArr[0][0] = toBin(newPC);                    
+                    break;
+                }
             case "out":
                 ProcSim.outLine("Outputing bin string ");
                 if (out == null) {

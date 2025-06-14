@@ -29,6 +29,7 @@ public class PComponent {
     int height;
     boolean hidden;
     boolean isStartComp;
+    String imgPath = "";
 
     PComponent(String str) {
         this.operations = new Vector<>();
@@ -41,9 +42,9 @@ public class PComponent {
         this.tmpOutConnectsToInput = new String[50][100];
         this.curOutConnectsTo = 0;
         this.tmpOps = new String[3][100];
-        this.tmpInToOps = new String[10][100];
-        this.tmpOutFromOps = new String[10][100];
-        this.tmpInputChecks = new String[2][10][100];
+        this.tmpInToOps = new String[20][100];
+        this.tmpOutFromOps = new String[20][100];
+        this.tmpInputChecks = new String[2][20][100];
         this.curOps = 0;
         this.curInCheck = new int[100];
         this.curInOp = new int[100];
@@ -68,9 +69,9 @@ public class PComponent {
         this.tmpOutConnectsToInput = new String[50][100];
         this.curOutConnectsTo = 0;
         this.tmpOps = new String[3][100];
-        this.tmpInToOps = new String[10][100];
-        this.tmpOutFromOps = new String[10][100];
-        this.tmpInputChecks = new String[2][10][100];
+        this.tmpInToOps = new String[20][100];
+        this.tmpOutFromOps = new String[20][100];
+        this.tmpInputChecks = new String[2][20][100];
         this.curOps = 0;
         this.curInCheck = new int[100];
         this.curInOp = new int[100];

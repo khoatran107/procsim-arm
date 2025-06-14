@@ -8,7 +8,7 @@ class Simulator {
     DiagCanvas dCanv;
     String[] registers;
     String name = "None";
-    String path = "MIPS R2000 Just R-Format.xml";
+    String path = "./examples/Full_Instructions.xml";
     Vector<PComponent> comps = new Vector<>();
     Vector<ProcBus> oddInBuses = new Vector<>();
     boolean resetEveryRound = true;
@@ -16,8 +16,8 @@ class Simulator {
     String lastChangedReg = "-1";
     int lastChangedMem = -1;
     int execInstr = 0;
-    DataMemory dataMemory;
-    FlagsRegister flagsRegister;
+    DataMemory dataMemory = new DataMemory();
+    FlagsRegister flagsRegister = new FlagsRegister();
 
     public Simulator(ProcSim procSim) {
         dataMemory.reset();

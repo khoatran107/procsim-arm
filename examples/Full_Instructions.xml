@@ -11,11 +11,10 @@
 		<hidden>false</hidden>
 		<outputBuses>
 			<output name="PC" bits="64" alternativeStr="true">
-				<to name="PC" comp="ALUIncr"/>
 				<to name="PCAddress" comp="InstrMemory"/>
-				<to name="PC+4" comp="ALUBranch" />
 				<to name="PC" comp="MuxALU1SRC"/>
-				<to name="PC" comp="MuxPCTOREG"/>
+				<to name="PC" comp="MuxPCTOREG2"/>
+				<to name="PC" comp="PCIncrement"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -77,18 +76,18 @@
 			<output name="FullInstruction" bits="32">
 				<to name="FullInstruction" comp="SignExtend"/>
 			</output>
-			<output name="Rm" bits="5"/>
+			<output name="Rm" bits="5">
 				<to name="Rm" comp="MuxREG2LOC"/>
 			</output>
-			<output name="Rd" bits="5"/>
+			<output name="Rd" bits="5">
 				<to name="Rd" comp="BranchControl"/>
 				<to name="Rd" comp="MuxREG2LOC"/>
-				<to name="Rd" comp="MuxPCTOREG"/>
+				<to name="Rd" comp="MuxPCTOREG1"/>
 			</output>
-			<output name="Rn" bits="5"/>
+			<output name="Rn" bits="5">
 				<to name="Rn" comp="MuxREG1LOC"/>
 			</output>
-			<output name="Shamt" bits="6"/>
+			<output name="Shamt" bits="6">
 				<to name="Shamt" comp="ALU"/>
 			</output>
 		</outputBuses>
@@ -214,7 +213,8 @@
 				<to name="MEMTOREG" comp="MuxMEMTOREG"/>
 			</output>
 			<output name="PCTOREG" bits="1">
-				<to name="PCTOREG" comp="MuxPCTOREG"/>
+				<to name="PCTOREG" comp="MuxPCTOREG1"/>
+				<to name="PCTOREG" comp="MuxPCTOREG2"/>
 			</output>
 			<output name="REGWRITE" bits="1">
 				<to name="REGWRITE" comp="Registers"/>
@@ -261,6 +261,8 @@
 			<output name="ReadData2" bits="64" alternativeStr="true">
 				<to name="ReadData2" comp="BranchControl"/>
 				<to name="ReadData2" comp="MuxALU2SRC"/>
+				<to name="ReadData2" comp="MOV"/>
+				<to name="WriteData" comp="Memory"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -294,7 +296,7 @@
 				</do>
 			</op>
 			<op name="WriteData">
-				<dependsOn which="RegWrite" if="1"/>
+				<dependsOn which="REGWRITE" if="1"/>
 				<do func="writereg">
 					<inputs>
 						<in name="WriteReg"/>
@@ -315,6 +317,7 @@
 		<outputBuses>
 			<output name="SignExtended" bits="64">
 				<to name="SignExtended" comp="MuxALU2SRC"/>
+				<to name="Extended" comp="MOV"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -371,6 +374,7 @@
 		<hidden>false</hidden>
 		<outputBuses>
 			<output name="Branch" bits="1">
+				<to name="Branch" comp="MuxBranch"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -412,6 +416,7 @@
 				<to name="ALUResult" comp="MuxUSEMOV"/>
 			</output>
 			<output name="Flags" bits="4">
+				<to name="NewFlags" comp="FlagControl"/>
 			</output>
 		</outputBuses>
 		<operations>
@@ -514,7 +519,7 @@
 		</operations>
 	</Component>
 
-	<!-- MuxREG1LOC -->
+	<!-- Start MuxREG1LOC -->
 	<Component>
 		<name>XZR</name>
 		<description>Output index of XZR</description>
@@ -577,7 +582,7 @@
 	</Component>
 	<!-- End MuxREG1LOC -->
 
-	<!-- MuxREG2LOC-->
+	<!-- Start MuxREG2LOC-->
 		<Component>
 		<name>MuxREG2LOC</name>
 		<description>Multiplexor Rd or Rm</description>
@@ -619,14 +624,14 @@
 	</Component>
 	<!-- End MuxREG2LOC-->
 
-	<!-- MuxPCTOREG-->
+	<!-- Start MuxPCTOREG-->
 	<Component>
 		<name>XLR</name>
 		<description>Output index of XLR</description>
 		<hidden>true</hidden>
 		<outputBuses>
 			<output name="XLR" bits="5" alternativeStr="true">
-				<to name="XLR" comp="MuxPCTOREG"/>
+				<to name="XLR" comp="MuxPCTOREG1"/>
 			</output>
 		</outputBuses>
 		<operations>
@@ -642,7 +647,7 @@
 	</Component>
 
 	<Component>
-		<name>MuxPCTOREG</name>
+		<name>MuxPCTOREG1</name>
 		<description>Multiplexor XLR or Rd</description>
 		<hidden>false</hidden>
 		<outputBuses>
@@ -682,8 +687,8 @@
 	</Component>
 	<!-- End MuxPCTOREG-->
 
-	<!-- MuxALU1SRC-->
-		<Component>
+	<!-- Start MuxALU1SRC-->
+	<Component>
 		<name>MuxALU1SRC</name>
 		<description>Multiplexor for ALU input 1, selects PC or ReadData1</description>
 		<hidden>false</hidden>
@@ -724,7 +729,7 @@
 	</Component>
 	<!-- End MuxALU1SRC-->
 
-	<!-- MuxALU2SRC -->
+	<!-- Start MuxALU2SRC -->
 	<Component>
 		<name>MuxALU2SRC</name>
 		<description>Multiplexor for ALU input 2, selects SignExtended or ReadData2</description>
@@ -766,7 +771,7 @@
 	</Component>
 	<!-- End MuxALU2SRC-->
 
-	<!-- MuxUSEMOV-->
+	<!-- Start MuxUSEMOV-->
 	<Component>
 		<name>MuxUSEMOV</name>
 		<description>Multiplexor selects MOVResult or ALUResult</description>
@@ -774,6 +779,8 @@
 		<outputBuses>
 			<output name="Result" bits="64">
 				<to name="Result" comp="MuxMEMTOREG"/>
+				<to name="Result" comp="MuxBranch"/>
+				<to name="Address" comp="Memory"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -808,14 +815,14 @@
 	</Component>
 	<!-- End MuxUSEMOV-->
 
-	<!-- MuxMEMTOREG -->
+	<!-- Start MuxMEMTOREG -->
 	<Component>
 		<name>MuxMEMTOREG</name>
 		<description>Multiplexor selects ReadData or Result</description>
 		<hidden>false</hidden>
 		<outputBuses>
 			<output name="MEMTOREGResult" bits="64">
-				<to name="MEMTOREGResult" comp="MuxPCTOREG"/>
+				<to name="MEMTOREGResult" comp="MuxPCTOREG2"/>
 			</output>
 		</outputBuses>
 		<inputBuses>
@@ -850,9 +857,9 @@
 	</Component>
 	<!-- End MuxMEMTOREG-->
 
-	<!-- MuxPCTOREG -->
+	<!-- Start MuxPCTOREG -->
 	<Component>
-		<name>MuxPCTOREG</name>
+		<name>MuxPCTOREG2</name>
 		<description>Multiplexor selects PC or MEMTOREGResult</description>
 		<hidden>false</hidden>
 		<outputBuses>
@@ -891,4 +898,74 @@
 		</operations>
 	</Component>
 	<!-- End MuxPCTOREG -->
+
+	<!-- Start MuxBranch-->
+	<Component>
+		<name>PCIncrement</name>
+		<description>Incrementing PC by 4</description>
+		<hidden>false</hidden>
+		<inputBuses>
+			<input name="PC" bits="64"/>
+		</inputBuses>
+		<outputBuses>
+			<output name="PCPlus4" bits="64" alternativeStr="true">
+				<to name="PCPlus4" comp="MuxBranch"/>
+			</output>
+		</outputBuses>
+		<operations>
+			<op name="PCPlus4">
+				<dependsOn which="always" if="always"/>
+				<do func="incrementPC">
+					<inputs>
+						<in name="PC"/>
+					</inputs>
+					<outputs>
+						<out name="PCPlus4"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+
+	<Component>
+		<name>MuxBranch</name>
+		<description>Multiplexor selects next PC value based on Branch signal</description>
+		<hidden>false</hidden>
+		<outputBuses>
+			<output name="newPC" bits="64">
+				<to name="newPC" comp="PC"/>
+			</output>
+		</outputBuses>
+		<inputBuses>
+			<input name="Branch" bits="1"/>
+			<input name="Result" bits="64"/>
+			<input name="PCPlus4" bits="64"/>
+		</inputBuses>
+		<operations>
+			<op name="SelectPCPlus4">
+				<dependsOn which="Branch" if="0"/>
+				<do func="mux">
+					<inputs>
+						<in name="PCPlus4"/>
+					</inputs>
+					<outputs>
+						<out name="newPC"/>
+					</outputs>
+				</do>
+			</op>
+			<op name="SelectBranchTarget">
+				<dependsOn which="Branch" if="1"/>
+				<do func="mux">
+					<inputs>
+						<in name="Result"/>
+					</inputs>
+					<outputs>
+						<out name="newPC"/>
+					</outputs>
+				</do>
+			</op>
+		</operations>
+	</Component>
+
+	<!-- End MuxBranch-->
 </Simulator>

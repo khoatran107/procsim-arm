@@ -415,7 +415,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
 
     /* loaded from: ProcSim.jar:ViewSim$AnimationListItem.class */
     class AnimationListItem {
-        int[] bus = new int[10];
+        int[] bus = new int[20];
         int numBuses = 0;
 
         AnimationListItem() {
@@ -453,7 +453,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             boolean z = false;
             for (int i6 = 0; i6 < this.mainMemFrame.MAX_VALS; i6++) {
                 if (i6 % 4 == 0) {
-                    if (Functions.toDec(this.sim.getWordMem(i6)).equals("0")) {
+                    if (Long.toString(this.sim.dataMemory.read(i6, 4, false)).equals("0")) {
                         z = false;
                     } else {
                         z = true;
@@ -473,7 +473,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             boolean z2 = false;
             for (int i8 = 0; i8 < this.mainMemFrame.MAX_VALS; i8++) {
                 if (i8 % 4 == 0) {
-                    if (Functions.toDec(this.sim.getWordMem(i8)).equals("0")) {
+                    if (Long.toString(this.sim.dataMemory.read(i8, 4, false)).equals("0")) {
                         z2 = false;
                     } else {
                         z2 = true;
@@ -483,12 +483,12 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
                     this.mainMemFrame.tModel.data[i7][0] = Integer.toString(i8);
                     if (i8 % 4 == 0) {
                         this.mainMemFrame.tModel.data[i7][1] = Integer.toString(i8 / 4);
-                        this.mainMemFrame.tModel.data[i7][3] = Functions.toDec(this.sim.getWordMem(i8), true);
+                        this.mainMemFrame.tModel.data[i7][3] = Long.toString(this.sim.dataMemory.read(i8, 4, false));
                     } else {
                         this.mainMemFrame.tModel.data[i7][1] = "";
                         this.mainMemFrame.tModel.data[i7][3] = "";
                     }
-                    this.mainMemFrame.tModel.data[i7][2] = Functions.toDec(this.sim.mainMemory[i8], true);
+                    this.mainMemFrame.tModel.data[i7][2] = Long.toString(this.sim.dataMemory.read(i8, 8, true));
                     i7++;
                 }
             }
@@ -678,7 +678,6 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
     }
 
     public void showIntrMem() {
-        System.out.println("showIntrMem");
         if (this.instrMemFrame == null) {
             this.instrMemFrame = new CompFrame("Instruction Memory", 2, this);
         }

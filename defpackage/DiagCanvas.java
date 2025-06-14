@@ -13,7 +13,12 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
+
+import javax.imageio.ImageIO;
 import javax.swing.JScrollPane;
 
 /* loaded from: ProcSim.jar:DiagCanvas.class */
@@ -273,8 +278,20 @@ public class DiagCanvas extends JScrollPane {
     private void drawComponent(int i, Graphics2D graphics2D, Font font) {
         PComponent pComponent = this.comps.get(i);
         if (pComponent.x != -999) {
-            graphics2D.setPaint(new GradientPaint(pComponent.x, pComponent.y, this.compGradient1, pComponent.x + pComponent.width, pComponent.y + pComponent.height, this.compGradient2, true));
-            graphics2D.fillRoundRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height, 10, 10);
+            boolean drawBackup = false;
+            if (!pComponent.imgPath.isEmpty()) {
+                try {
+                    BufferedImage image = ImageIO.read(new File(pComponent.imgPath));
+                    graphics2D.drawImage(image, pComponent.x, pComponent.y, pComponent.width, pComponent.height, null);
+                } catch (IOException e) {
+                    System.err.println("Error loading image: " + pComponent.imgPath);
+                    drawBackup = true;
+                }
+            }
+            if (drawBackup) {
+                graphics2D.setPaint(this.compGradient1);
+                graphics2D.fillRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height);
+            }
             boolean z = this.source.loadSim.addingComponent;
             boolean z2 = this.source.loadSim.addingBus;
             PComponent currentAnimComp = this.animThread.getCurrentAnimComp();
@@ -282,21 +299,21 @@ public class DiagCanvas extends JScrollPane {
             if (!this.b_ViewSim && ((i == this.curEditComp && z) || (z2 && this.curEditBus > -1 && this.buses.get(this.curEditBus).out != null && this.buses.get(this.curEditBus).out.equals(pComponent)))) {
                 graphics2D.setColor(Color.red);
                 graphics2D.setStroke(new BasicStroke(3.0f, 0, 1));
-                graphics2D.drawRoundRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height, 10, 10);
+                graphics2D.drawRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height);
                 graphics2D.setStroke(new BasicStroke(1.0f, 0, 1));
             } else if (z2 && this.curEditBus > -1 && this.buses.get(this.curEditBus).in != null && this.buses.get(this.curEditBus).in.equals(pComponent)) {
                 graphics2D.setColor(Color.blue);
                 graphics2D.setStroke(new BasicStroke(3.0f, 0, 1));
-                graphics2D.drawRoundRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height, 10, 10);
+                graphics2D.drawRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height);
                 graphics2D.setStroke(new BasicStroke(1.0f, 0, 1));
             } else if (((currentAnimComp != null && pComponent.equals(currentAnimComp) && pComponent2 == null) || (pComponent2 != null && pComponent2.equals(pComponent))) && this.b_ViewSim && !this.animThread.instantSpeed) {
                 graphics2D.setColor(Color.red);
                 graphics2D.setStroke(new BasicStroke(3.0f, 0, 1));
-                graphics2D.drawRoundRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height, 10, 10);
+                graphics2D.drawRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height);
                 graphics2D.setStroke(new BasicStroke(1.0f, 0, 1));
             } else {
                 graphics2D.setColor(Color.black);
-                graphics2D.drawRoundRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height, 10, 10);
+                graphics2D.drawRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height);
             }
             int stringWidth = graphics2D.getFontMetrics(font).stringWidth(pComponent.name);
             int height = graphics2D.getFontMetrics(font).getHeight();

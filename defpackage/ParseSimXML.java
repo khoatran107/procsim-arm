@@ -8,6 +8,8 @@ import java.awt.Panel;
 import java.awt.Toolkit;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.stream.Collectors;
+
 import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -109,6 +111,8 @@ class ParseSimXML {
         if (node == null) {
             return;
         }
+        System.out.println("Current Node: " + node.getNodeValue());
+
         switch (node.getNodeType()) {
             case 1:
                 String nodeName = node.getNodeName();
@@ -236,6 +240,7 @@ class ParseSimXML {
                         break;
                     }
                 } else if (nodeName.equals("out") && this.operations) {
+                    System.out.println(((Attr)node.getAttributes().getNamedItem("name")).getValue());
                     getComp().tmpOutFromOps[getComp().curOutOp[getComp().curOps - 1]][getComp().curOps - 1] = ((Attr) node.getAttributes().getNamedItem("name")).getValue();
                     int[] iArr2 = getComp().curOutOp;
                     int i2 = getComp().curOps - 1;
@@ -501,6 +506,12 @@ class ParseSimXML {
                     this.source.diagCanvas.buses.add(diagBus);
                 } else {
                     for (int i3 = 0; i3 < getComp(i).buses.get(i2).destComps.size(); i3++) {
+                        System.out.println("OutName: " + procBus.outName);
+                        System.out.println("inNames:" + procBus.inNames);
+                        System.out.println("destComps names: " + procBus.destComps.stream()
+                            .map(comp -> comp.name) // or comp.getName() if using a getter
+                            .collect(Collectors.joining(", ")));
+
                         DiagBus diagBus2 = new DiagBus(procBus.outName, procBus.inNames.get(i3), procBus.sourceComp, procBus.destComps.get(i3), procBus.bits, procBus);
                         getComp(i).buses.get(i2).diagBuses.add(diagBus2);
                         this.source.diagCanvas.buses.add(diagBus2);

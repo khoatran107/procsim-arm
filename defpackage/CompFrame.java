@@ -63,7 +63,7 @@ class CompFrame extends JFrame implements ActionListener {
         this.instrMem = false;
         this.MAX_VALS = 256;
         this.size = 0;
-        this.widths = new int[10];
+        this.widths = new int[20];
         this.mcr = new MyCellRenderer();
         this.justChanged = -1;
         this.viewSim = viewSim;
