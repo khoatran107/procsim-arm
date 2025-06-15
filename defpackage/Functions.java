@@ -154,8 +154,8 @@ public class Functions {
                 break;
             case "flagControl":
                 {
-                    int newFlags = Integer.parseInt(inputs.get(0).binaryValue, 2);
                     boolean setFlags = inputs.get(0).binaryValue == "1" ? true: false;
+                    int newFlags = Integer.parseInt(inputs.get(1).binaryValue, 2);
                     sim.flagsRegister.update(setFlags, newFlags);
                     int flags = sim.flagsRegister.getFlags();
                     strArr[0][0] = toBin(flags).substring(64 - (int)Constants.FLAGSIZE);
@@ -198,6 +198,9 @@ public class Functions {
                     boolean signLoad = inputs.get(2).binaryValue == "1";
                     long readResult = sim.dataMemory.read(address, memSizeLog, signLoad);
                     strArr[0][0] = toBin(readResult);
+                    System.out.printf("memSizeLog = %d\n", memSizeLog);
+                    System.out.printf("address = %d\n", address);
+                    System.out.printf("readResult = %d\n", readResult);
                     break;
                 }
             case "writemem":

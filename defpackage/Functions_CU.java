@@ -81,8 +81,7 @@ class Constants {
     public static final long MOV_MASK = 0b11011111100;
     public static final long MOV_BITSET = 0b11010010100;
 
-    public static final long SIGNLOAD_MASK = 0b10111000100;
-    public static final long SIGNLOAD_BITSET = 0b10111000100;
+    public static final long LDURSW = 0b10111000100;
     
     
     // From registers.vh
@@ -146,7 +145,9 @@ class ControlUnit {
         op_bflag = (opcode & Constants.BFLAG_MASK) == Constants.BFLAG_BITSET;
         op_shift = (opcode & Constants.SHIFT_MASK) == Constants.SHIFT_BITSET;
         op_mov = (opcode & Constants.MOV_MASK) == Constants.MOV_BITSET;
-        op_ldur = (opcode & Constants.LDUR_MASK) == Constants.LDUR_BITSET;
+        
+        op_ldur = ((opcode & Constants.LDUR_MASK) == Constants.LDUR_BITSET) || opcode == Constants.LDURSW;
+
         op_stur = (opcode & Constants.STUR_MASK) == Constants.STUR_BITSET;
         op_i = (opcode & Constants.I_MASK) == Constants.I_BITSET;
         op_r = (opcode & Constants.R_MASK) == Constants.R_BITSET;
@@ -164,7 +165,7 @@ class ControlUnit {
                    (ri_upper == 0b111 && ri_lower == 0b100));       // SUB(I)S
         
         long control = 0;
-        control = BitUtils.setBit(control, Constants.SIGNLOAD, ((Constants.SIGNLOAD_MASK & opcode) == Constants.SIGNLOAD_BITSET) ? 1 : 0);
+        control = BitUtils.setBit(control, Constants.SIGNLOAD, (Constants.LDURSW == opcode) ? 1 : 0);
         control = BitUtils.setBit(control, Constants.REG1LOC, (op_cb || op_shift || op_bflag) ? 1 : 0);
         control = BitUtils.setBit(control, Constants.REG2LOC, (op_cb || op_ldur || op_stur || op_mov) ? 1 : 0);
         control = BitUtils.setBit(control, Constants.USEMOV, op_mov ? 1 : 0);
@@ -235,6 +236,7 @@ class SignExtension {
         long shortValue = instruction & ((1 << Constants.SHORTSIZE) - 1);
         
         long alu_imm = (shortValue >> 10) & 0xFFF;
+        
         long mov_imm = (shortValue >> 5) & 0xFFFF;
         long b_addr = BitUtils.signExtend((shortValue & 0x3FFFFFF) << 2, 28);
         long cb_addr = BitUtils.signExtend(((shortValue >> 5) & 0x7FFFF) << 2, 21);
@@ -264,6 +266,11 @@ class FlagsRegister {
         if (setflags) {
             this.flags = flagstoset & 0xF;
         }
+        System.out.printf("New flag: N = %d, Z = %d, V = %d, C = %d\n", 
+                    (flags >> 3) & 1,
+                    (flags >> 2) & 1,
+                    (flags >> 1) & 1,
+                    (flags >> 0) & 1);
     }
     
     public void reset() {
@@ -316,7 +323,7 @@ class BranchControl {
         
         // whether conditionally branch based on the state of zero
         conditional = ((opcode & Constants.CB_MASK) == Constants.CB_BITSET) &&
-                     (((opcode >> 3) & 1) == 0 && zero) || (((opcode >> 3) & 1) == 1 && !zero);
+                     ((((opcode >> 3) & 1) == 0 && zero) || (((opcode >> 3) & 1) == 1 && !zero));
         
         // whether to conditionally branch based on flags
         flagbased = ((opcode & Constants.BFLAG_MASK) == Constants.BFLAG_BITSET) &&
@@ -345,8 +352,8 @@ class ALU {
         boolean shift, shdir;
         
         // value of operands to be used
-        useda = ((aluop >> 5) & 1) == 1 ? (~a + 1) & 0x1FFFFFFFFL : a & 0x1FFFFFFFFL;
-        usedb = ((aluop >> 4) & 1) == 1 ? (~b + 1) & 0x1FFFFFFFFL : b & 0x1FFFFFFFFL;
+        useda = ((aluop >> 5) & 1) == 1 ? (~a + 1): a;
+        usedb = ((aluop >> 4) & 1) == 1 ? (~b + 1): b;
         
         // set shift parameters
         shift = ((aluop >> 3) & 1) == 1;
@@ -382,7 +389,7 @@ class ALU {
 
 // MOV module equivalent
 class MOV {
-    public static long execute(long readreg, long extended, int movop) {
+    public static long execute(long readData2, long extended, int movop) {
         long[] array = new long[4];
         boolean movkeep = ((movop >> 2) & 1) == 1;
         
@@ -390,8 +397,10 @@ class MOV {
         array[(int)Constants.MOVSHIFT32] = ~(0xFFFFL << 32);
         array[(int)Constants.MOVSHIFT16] = ~(0xFFFFL << 16);
         array[(int)Constants.MOVSHIFT00] = ~0xFFFFL;
-        
-        return (movkeep ? readreg & array[movop & 0x3] : 0) | extended;
+
+        int hw = movop & 0x3;
+        int shiftAmount = hw << 4;
+        return (movkeep ? (readData2 & array[movop & 0x3]) : 0) | (extended << shiftAmount);
     }
 }
 
@@ -411,7 +420,7 @@ class DataMemory {
         int memSize = 1 << memSizeLog;
         long result = 0;
         for (int i = 0; i < memSize; i++) {
-            result |= (data[(int)(addr + i)] & 0xFF) << (i * 8);
+            result |= (long)(data[(int)(addr + i)] & 0xFF) << (i * 8);
         }
         if (signLoad) {
             long shift = 64 - memSize * 8;

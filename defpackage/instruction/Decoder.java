@@ -78,6 +78,14 @@ public class Decoder {
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
 		case ORRI :
 			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber);
+		case EOR :
+			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
+		case EORI :
+			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber);
+		case LSL:
+			return new Instruction(Mnemonic.LSL, decodeRRIShiftArgs(args), lineNumber);
+		case LSR:
+			return new Instruction(Mnemonic.LSR, decodeRRIShiftArgs(args), lineNumber);
 		case LDUR :
 			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case STUR :
@@ -184,7 +192,7 @@ public class Decoder {
 		int[] operands = new int[3];
 		operands[0] = decodeRegister("XZR");
 		operands[1] = decodeRegister(args.get(0));
-		operands[2] = decodeArithmeticImmediate(args.get(0));
+		operands[2] = decodeArithmeticImmediate(args.get(1));
 		return operands;
 	}
 	

@@ -49,6 +49,7 @@ public enum Mnemonic {
 	LDURB("LDURB", "ldurb", TokenType.MNEMONIC_RM, "00111000010", "0010"),
 	LDURH("LDURH", "ldurh", TokenType.MNEMONIC_RM, "01111000010", "0010"),
 	LDURSW("LDURSW", "ldursw", TokenType.MNEMONIC_RM, "10111000100", "0010"),
+	
 	STUR("STUR", "stur", TokenType.MNEMONIC_RM, "11111000000", "0010"),
 	STURB("STURB", "sturb", TokenType.MNEMONIC_RM, "00111000000", "0010"),
 	STURH("STURH", "sturh", TokenType.MNEMONIC_RM, "01111000000", "0010"),

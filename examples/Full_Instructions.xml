@@ -150,9 +150,9 @@
 					</outputs>
 				</do>
 			</op>
-			<op name="Shamt5-0">
+			<op name="Shamt15-10">
 				<dependsOn which="always" if="always"/>
-				<do func="split" out="5-0">
+				<do func="split" out="15-10">
 					<inputs>
 						<in name="Instr"/>
 					</inputs>

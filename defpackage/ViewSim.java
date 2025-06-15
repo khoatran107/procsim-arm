@@ -453,7 +453,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             boolean z = false;
             for (int i6 = 0; i6 < this.mainMemFrame.MAX_VALS; i6++) {
                 if (i6 % 4 == 0) {
-                    if (Long.toString(this.sim.dataMemory.read(i6, 4, false)).equals("0")) {
+                    if (Long.toString(this.sim.dataMemory.read(i6, 2, false)).equals("0")) {
                         z = false;
                     } else {
                         z = true;
@@ -473,7 +473,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             boolean z2 = false;
             for (int i8 = 0; i8 < this.mainMemFrame.MAX_VALS; i8++) {
                 if (i8 % 4 == 0) {
-                    if (Long.toString(this.sim.dataMemory.read(i8, 4, false)).equals("0")) {
+                    if (Long.toString(this.sim.dataMemory.read(i8, 2, false)).equals("0")) {
                         z2 = false;
                     } else {
                         z2 = true;
@@ -483,12 +483,12 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
                     this.mainMemFrame.tModel.data[i7][0] = Integer.toString(i8);
                     if (i8 % 4 == 0) {
                         this.mainMemFrame.tModel.data[i7][1] = Integer.toString(i8 / 4);
-                        this.mainMemFrame.tModel.data[i7][3] = Long.toString(this.sim.dataMemory.read(i8, 4, false));
+                        this.mainMemFrame.tModel.data[i7][3] = Long.toString(this.sim.dataMemory.read(i8, 2, false));
                     } else {
                         this.mainMemFrame.tModel.data[i7][1] = "";
                         this.mainMemFrame.tModel.data[i7][3] = "";
                     }
-                    this.mainMemFrame.tModel.data[i7][2] = Long.toString(this.sim.dataMemory.read(i8, 8, true));
+                    this.mainMemFrame.tModel.data[i7][2] = Long.toHexString(this.sim.dataMemory.read(i8, 0, false));
                     i7++;
                 }
             }
