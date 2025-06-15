@@ -334,17 +334,5 @@ public class Functions {
         }
         return strArr;
     }
-
-    private static String shiftLeft(String str, int i) {
-        for (int i2 = 0; i2 < i; i2++) {
-            str = str.substring(1, str.length()) + "0";
-        }
-        return str;
-    }
-
-    private static String checkZero(String str) {
-        return Long.parseLong(toDec(str)) == 0 ? "1" : "0";
-    }
-
 }
 

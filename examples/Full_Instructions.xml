@@ -863,7 +863,7 @@
 		<description>Multiplexor selects PC or MEMTOREGResult</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="WriteData" bits="64" optional="true" finalBus="true">
+			<output name="WriteData" bits="64" alternativeStr="true" optional="true" finalBus="true">
 				<to name="WriteData" comp="Registers"/>
 			</output>
 		</outputBuses>
@@ -932,7 +932,7 @@
 		<description>Multiplexor selects next PC value based on Branch signal</description>
 		<hidden>false</hidden>
 		<outputBuses>
-			<output name="newPC" bits="64">
+			<output name="newPC" bits="64" alternativeStr="true">
 				<to name="newPC" comp="PC"/>
 			</output>
 		</outputBuses>

@@ -3,9 +3,6 @@ package defpackage.instruction;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import defpackage.cpu.CPU;
-import defpackage.cpu.ControlUnitConfiguration;
-
 /**
  * The <code>Decoder</code> is used to generate <code>Instruction</code>s from the LEGv8 source code.
  * 
@@ -28,6 +25,13 @@ public class Decoder {
 	public static final int[] WIDE_SHIFT_IMM = {0, 16, 32, 48};
 	public static final int EXCLUSIVE_IMM = 0;
 
+	private static final int XZR = 31;
+	private static final int LR = 30;
+	private static final int FP = 29;
+	private static final int SP = 28;
+	private static final int IP1 = 17;
+	private static final int IP0 = 16;
+
 	/**
 	 * @param mnemonic		the instruction mnemonic
 	 * @param args			the array of arguments (in string form) for this instruction i.e. register indices and immediates
@@ -47,109 +51,101 @@ public class Decoder {
 					throws UndefinedLabelException, ImmediateOutOfBoundsException {
 		switch (mnemonic) {
 		case ADD :
-			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
+			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
 		case ADDS :
-			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR_FLAGS);
+			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
 		case ADDI :
-			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber);
 		case ADDIS :
-			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI_FLAGS);
+			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber);
 		case SUB :
-			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
+			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
 		case SUBS :
-			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR_FLAGS);
+			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
 		case SUBI :
-			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber);
 		case SUBIS :
-			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI_FLAGS);
+			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber);
 		case AND :
-			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
+			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
 		case ANDS :
-			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR_FLAGS);
+			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
 		case ANDI :
-			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber);
 		case ANDIS :
-			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI_FLAGS);
+			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber);
 		case ORR :
-			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
+			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber);
 		case ORRI :
-			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
-		case EOR :
-			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
-		case EORI :
-			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
-		case LSL :
-			return new Instruction(mnemonic, decodeRRIShiftArgs(args), lineNumber, ControlUnitConfiguration.RRI);
-		case LSR :
-			return new Instruction(mnemonic, decodeRRIShiftArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber);
 		case LDUR :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_LOAD);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case STUR :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_STORE);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case LDURSW :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_LOAD);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case STURW :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_STORE);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case LDURH :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_LOAD);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case STURH :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_STORE);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case LDURB :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_LOAD);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case STURB :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_STORE);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case LDXR :
-			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_LOAD);
+			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber);
 		case STXR :
-			return new Instruction(mnemonic, decodeRRMArgs(args), lineNumber, ControlUnitConfiguration.RRM);
+			return new Instruction(mnemonic, decodeRRMArgs(args), lineNumber);
 		case MOVZ :
-			return new Instruction(mnemonic, decodeRISIArgs(args), lineNumber, ControlUnitConfiguration.RISI);
+			return new Instruction(mnemonic, decodeRISIArgs(args), lineNumber);
 		case MOVK :
-			return new Instruction(mnemonic, decodeRISIArgs(args), lineNumber, ControlUnitConfiguration.RISI);
+			return new Instruction(mnemonic, decodeRISIArgs(args), lineNumber);
 		case CBZ :
-			return new Instruction(mnemonic, decodeRLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.RL);
+			return new Instruction(mnemonic, decodeRLArgs(args, branchTable), lineNumber);
 		case CBNZ :
-			return new Instruction(mnemonic, decodeRLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.RL);
+			return new Instruction(mnemonic, decodeRLArgs(args, branchTable), lineNumber);
 		case BEQ :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BNE :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BHS :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BLO :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BHI :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BLS :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BGE :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BLT :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BGT :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BLE :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BMI :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BPL :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BVS :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BVC :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case B :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case BR :
-			return new Instruction(mnemonic, decodeRArgs(args), lineNumber, null);
+			return new Instruction(mnemonic, decodeRArgs(args), lineNumber);
 		case BL :
-			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, null);
+			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber);
 		case CMP :
-			return new Instruction(Mnemonic.SUBS, decodeCMPArgs(args), lineNumber, null);
+			return new Instruction(Mnemonic.SUBS, decodeCMPArgs(args), lineNumber);
 		case CMPI :
-			return new Instruction(Mnemonic.SUBIS, decodeRIArgs(args), lineNumber, null);
+			return new Instruction(Mnemonic.SUBIS, decodeRIArgs(args), lineNumber);
 		case MOV :
-			return new Instruction(Mnemonic.ORR, decodeMOVArgs(args), lineNumber, null);
+			return new Instruction(Mnemonic.ORR, decodeMOVArgs(args), lineNumber);
 		default : return null;
 		}
 	}
@@ -272,18 +268,18 @@ public class Decoder {
 	
 	private static int decodeRegister(String reg) {
 		switch (reg) {
-		case "XZR" : return CPU.XZR;
-		case "xzr" : return CPU.XZR;
-		case "IP0" : return CPU.IP0;
-		case "ip0" : return CPU.IP0;
-		case "IP1" : return CPU.IP1;
-		case "ip1" : return CPU.IP1;
-		case "SP" : return CPU.SP;
-		case "sp" : return CPU.SP;
-		case "FP" : return CPU.FP;
-		case "fp" : return CPU.FP;
-		case "LR" : return CPU.LR;
-		case "lr" : return CPU.LR;
+		case "XZR" : return XZR;
+		case "xzr" : return XZR;
+		case "IP0" : return IP0;
+		case "ip0" : return IP0;
+		case "IP1" : return IP1;
+		case "ip1" : return IP1;
+		case "SP" : return SP;
+		case "sp" : return SP;
+		case "FP" : return FP;
+		case "fp" : return FP;
+		case "LR" : return LR;
+		case "lr" : return LR;
 		default : return Integer.parseInt(reg.substring(1));
 		}
 	}

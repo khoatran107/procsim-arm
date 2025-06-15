@@ -1,8 +1,5 @@
 package defpackage.instruction;
 
-import defpackage.cpu.CPU;
-import defpackage.cpu.ControlUnitConfiguration;
-
 /**
  * An <code>Instruction</code> object is used to represent each LEGv8 instruction in the user's program.
  * <p>
@@ -18,7 +15,6 @@ public class Instruction {
 	 * @param mnemonic			the instruction mnemonic
 	 * @param args				the array of arguments for this instruction i.e. register indices and immediates
 	 * @param editorLineNumber	the line in the code editor of this instruction
-	 * @param controlSignals	the control signals required to execute this instruction
 	 * 
 	 * @see Mnemonic
 	 * @see ControlUnitConfiguration
@@ -28,12 +24,10 @@ public class Instruction {
 		this.isEmpty = true;
 	}
 	
-	public Instruction(Mnemonic mnemonic, int[] args, int editorLineNumber, 
-			ControlUnitConfiguration controlSignals) {
+	public Instruction(Mnemonic mnemonic, int[] args, int editorLineNumber) {
 		this.mnemonic = mnemonic;
 		this.args = args;
 		this.editorLineNumber = editorLineNumber;
-		this.controlSignals = controlSignals;
 		this.isEmpty = false;
 	}
 	
@@ -58,12 +52,6 @@ public class Instruction {
 		return editorLineNumber;
 	}
 	
-	/**
-	 * @return	the control signals required to execute this instruction
-	 */
-	public ControlUnitConfiguration getControlSignals() {
-		return controlSignals;
-	}
 
 	public boolean isEmpty() {
 		return isEmpty;
@@ -236,7 +224,6 @@ public class Instruction {
 	private Mnemonic mnemonic;
 	private int[] args;
 	private int editorLineNumber;
-	private ControlUnitConfiguration controlSignals;
 	private boolean isEmpty;
 
 	public String strNoLbl;
