@@ -13,7 +13,6 @@
 			<output name="PC" bits="64" alternativeStr="true">
 				<to name="PCAddress" comp="InstrMemory"/>
 				<to name="PC" comp="MuxALU1SRC"/>
-				<to name="PC" comp="MuxPCTOREG2"/>
 				<to name="PC" comp="PCIncrement"/>
 			</output>
 		</outputBuses>
@@ -870,7 +869,7 @@
 		<inputBuses>
 			<input name="PCTOREG" bits="1"/>
 			<input name="MEMTOREGResult" bits="64"/>
-			<input name="PC" bits="64"/>
+			<input name="PCPlus4" bits="64"/>
 		</inputBuses>
 		<operations>
 			<op name="SelectMEMTOREGResult">
@@ -884,11 +883,11 @@
 					</outputs>
 				</do>
 			</op>
-			<op name="SelectPC">
+			<op name="SelectPCPlus4">
 				<dependsOn which="PCTOREG" if="1"/>
 				<do func="mux">
 					<inputs>
-						<in name="PC"/>
+						<in name="PCPlus4"/>
 					</inputs>
 					<outputs>
 						<out name="WriteData"/>
@@ -910,6 +909,7 @@
 		<outputBuses>
 			<output name="PCPlus4" bits="64" alternativeStr="true">
 				<to name="PCPlus4" comp="MuxBranch"/>
+				<to name="PCPlus4" comp="MuxPCTOREG2"/>
 			</output>
 		</outputBuses>
 		<operations>

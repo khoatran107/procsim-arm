@@ -67,19 +67,7 @@ public class Functions {
         } else if (str.substring(0, 1).equals("0")) {
             return Long.toString(Long.parseLong(str, 2));
         }
-        String str2 = "";
-        boolean z = false;
-        for (int length = str.length() - 1; length >= 0; length--) {
-            String substring = str.substring(length, length + 1);
-            if (z) {
-                substring = substring.equals("0") ? "1" : "0";
-            }
-            str2 = substring + str2;
-            if (substring.equals("1")) {
-                z = true;
-            }
-        }
-        return Long.toString(-Long.parseLong(str2, 2));
+        return Long.toString(Long.parseUnsignedLong(str, 2));
     }
 
     private static boolean checkAllowFunc(ProcBus procBus) {
@@ -135,7 +123,7 @@ public class Functions {
         switch (func) {
             case "control":
                 {
-                    long opcode = Integer.parseInt(inputs.get(0).binaryValue, 2);
+                    long opcode = Integer.parseUnsignedInt(inputs.get(0).binaryValue, 2);
                     ControlSignals controlSignals = ControlUnit.decode(opcode);
                     strArr[0][0] = toBin(controlSignals.aluop).substring(64 - (int)Constants.ALUOPSIZE);
                     strArr[1][0] = toBin(controlSignals.movop).substring(64 - (int)Constants.MOVOPSIZE);
@@ -148,14 +136,15 @@ public class Functions {
                     break;
                 }
             case "signExtend":
-                long instruction = Long.parseLong(inputs.get(0).binaryValue, 2);
+                long instruction = Long.parseUnsignedLong(inputs.get(0).binaryValue, 2);
                 long signExtendedValue = SignExtension.extend(instruction);
                 strArr[0][0] = toBin(signExtendedValue);
+                System.out.println("signExtend output: " + strArr[0][0].length());
                 break;
             case "flagControl":
                 {
                     boolean setFlags = inputs.get(0).binaryValue == "1" ? true: false;
-                    int newFlags = Integer.parseInt(inputs.get(1).binaryValue, 2);
+                    int newFlags = Integer.parseUnsignedInt(inputs.get(1).binaryValue, 2);
                     sim.flagsRegister.update(setFlags, newFlags);
                     int flags = sim.flagsRegister.getFlags();
                     strArr[0][0] = toBin(flags).substring(64 - (int)Constants.FLAGSIZE);
@@ -163,20 +152,20 @@ public class Functions {
                 }
             case "branchControl":
                 {
-                    int opcode = Integer.parseInt(inputs.get(0).binaryValue, 2);
-                    long readData2 = Long.parseLong(inputs.get(1).binaryValue, 2);
-                    int rd = Integer.parseInt(inputs.get(2).binaryValue, 2);
-                    int flags = Integer.parseInt(inputs.get(3).binaryValue, 2);
+                    int opcode = Integer.parseUnsignedInt(inputs.get(0).binaryValue, 2);
+                    long readData2 = Long.parseUnsignedLong(inputs.get(1).binaryValue, 2);
+                    int rd = Integer.parseUnsignedInt(inputs.get(2).binaryValue, 2);
+                    int flags = Integer.parseUnsignedInt(inputs.get(3).binaryValue, 2);
                     boolean branch = BranchControl.shouldBranch(opcode, readData2, rd, flags);
                     strArr[0][0] = branch? "1" : "0";
                     break;
                 }
             case "alu":
                 {
-                    long a = Long.parseLong(inputs.get(0).binaryValue, 2);
-                    long b = Long.parseLong(inputs.get(1).binaryValue, 2);
-                    int shamt = Integer.parseInt(inputs.get(2).binaryValue, 2);
-                    int aluop = Integer.parseInt(inputs.get(3).binaryValue, 2);
+                    long a = Long.parseUnsignedLong(inputs.get(0).binaryValue, 2);
+                    long b = Long.parseUnsignedLong(inputs.get(1).binaryValue, 2);
+                    int shamt = Integer.parseUnsignedInt(inputs.get(2).binaryValue, 2);
+                    int aluop = Integer.parseUnsignedInt(inputs.get(3).binaryValue, 2);
                     ALU.Result result = ALU.execute(a, b, shamt, aluop);
                     strArr[0][0] = toBin(result.res);
                     strArr[1][0] = toBin(result.flags).substring(64 - (int)Constants.FLAGSIZE);
@@ -184,17 +173,19 @@ public class Functions {
                 }
             case "mov":
                 {
-                    long readData2 = Long.parseLong(inputs.get(0).binaryValue, 2);
-                    long extended = Long.parseLong(inputs.get(1).binaryValue, 2);
-                    int movop = Integer.parseInt(inputs.get(2).binaryValue, 2);
+                    long readData2 = Long.parseUnsignedLong(inputs.get(0).binaryValue, 2);
+                    long extended = Long.parseUnsignedLong(inputs.get(1).binaryValue, 2);
+                    System.out.println("extended input of MOV len = " + inputs.get(1).binaryValue.length());
+                    System.out.println("extended = " + extended);
+                    int movop = Integer.parseUnsignedInt(inputs.get(2).binaryValue, 2);
                     long movResult = MOV.execute(readData2, extended, movop);
                     strArr[0][0] = toBin(movResult);
                     break;
                 }
             case "readmem":
                 {
-                    long address = Long.parseLong(inputs.get(0).binaryValue, 2);
-                    int memSizeLog = Integer.parseInt(inputs.get(1).binaryValue, 2);
+                    long address = Long.parseUnsignedLong(inputs.get(0).binaryValue, 2);
+                    int memSizeLog = Integer.parseUnsignedInt(inputs.get(1).binaryValue, 2);
                     boolean signLoad = inputs.get(2).binaryValue == "1";
                     long readResult = sim.dataMemory.read(address, memSizeLog, signLoad);
                     strArr[0][0] = toBin(readResult);
@@ -205,9 +196,9 @@ public class Functions {
                 }
             case "writemem":
                 {
-                    long address = Long.parseLong(inputs.get(0).binaryValue, 2);
-                    long writeData = Long.parseLong(inputs.get(1).binaryValue, 2);
-                    int memSizeLog = Integer.parseInt(inputs.get(2).binaryValue, 2);
+                    long address = Long.parseUnsignedLong(inputs.get(0).binaryValue, 2);
+                    long writeData = Long.parseUnsignedLong(inputs.get(1).binaryValue, 2);
+                    int memSizeLog = Integer.parseUnsignedInt(inputs.get(2).binaryValue, 2);
                     sim.dataMemory.write(address, writeData, memSizeLog);
                     break;
                 }
@@ -217,7 +208,7 @@ public class Functions {
                 }
             case "incrementPC":
                 {
-                    long PC = Long.parseLong(inputs.get(0).binaryValue, 2);
+                    long PC = Long.parseUnsignedLong(inputs.get(0).binaryValue, 2);
                     long newPC = PC + 4;
                     strArr[0][0] = toBin(newPC);                    
                     break;
@@ -261,20 +252,20 @@ public class Functions {
                     break;
                 } else {
                     int length = str2.length() - 1;
-                    int parseInt = length - Integer.parseInt(out.substring(indexOf + 1, out.length()));
-                    int parseInt2 = length - Integer.parseInt(out.substring(0, indexOf));
-                    if (parseInt2 > parseInt) {
+                    int parseUnsignedInt = length - Integer.parseUnsignedInt(out.substring(indexOf + 1, out.length()));
+                    int parseUnsignedInt2 = length - Integer.parseUnsignedInt(out.substring(0, indexOf));
+                    if (parseUnsignedInt2 > parseUnsignedInt) {
                         ProcSim.outErr("Error in outstring in func 'split', (should be e.g. '31-26') - " + out);
                         break;
-                    } else if (parseInt > str2.length()) {
+                    } else if (parseUnsignedInt > str2.length()) {
                         ProcSim.outErr(
                                 "Error in outstring in func 'split', split value is bigger than input value - " + out);
                         break;
-                    } else if (parseInt2 < 0 || parseInt < 0) {
+                    } else if (parseUnsignedInt2 < 0 || parseUnsignedInt < 0) {
                         ProcSim.outErr("Error in outstring in func 'split', split value is smaller than zero - " + out);
                         break;
                     } else {
-                        strArr[0][0] = str2.substring(parseInt2, parseInt + 1);
+                        strArr[0][0] = str2.substring(parseUnsignedInt2, parseUnsignedInt + 1);
                         break;
                     }
                 }

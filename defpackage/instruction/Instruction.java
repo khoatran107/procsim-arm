@@ -83,9 +83,24 @@ public class Instruction {
 				} else {
 					return getMachineCodeBCond(ins, instructionIndex);
 				}
+			case MNEMONIC_R:
+				if (m == Mnemonic.BR) {
+					return getMachineCodeBR(ins);
+				}
 			default:
 				return "";
 		}
+	}
+
+	static String getMachineCodeBR(Instruction ins) {
+		String[] fields = new String[5];
+		fields[0] = ins.getMnemonic().opcode;
+		fields[1] = getRegBinary(0); // not used
+		fields[2] = getImmBinary(0, 6, false);
+		fields[3] = getRegBinary(0); // not used
+		fields[4] = getRegBinary(ins.getArgs()[0]);
+		System.out.println("args0 = " + ins.getArgs()[0]);
+		return String.join("", fields);
 	}
 	
 	static String getMachineCodeRRR(Instruction ins) {
@@ -101,9 +116,9 @@ public class Instruction {
 	static String getMachineCodeShift(Instruction ins) {
 		String[] fields = new String[5];
 		fields[0] = ins.getMnemonic().opcode;
-		fields[1] = getImmBinary(0, 5, false);
+		fields[1] = getRegBinary(ins.getArgs()[1]);
 		fields[2] = getImmBinary(ins.getArgs()[2], 6, false);
-		fields[3] = getRegBinary(ins.getArgs()[1]);
+		fields[3] = getRegBinary(0);
 		fields[4] = getRegBinary(ins.getArgs()[0]);
 		return String.join("", fields);
 	}

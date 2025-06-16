@@ -136,7 +136,7 @@ class ControlUnit {
     }
     
     public static ControlSignals decode(long opcode) {
-        boolean op_mov, op_b, op_cb, op_bflag, op_shift, op_ldur, op_stur, op_i, op_r, op_ri, op_branch, op_restoreg;
+        boolean op_mov, op_b, op_cb, op_bflag, op_shift, op_ldur, op_stur, op_i, op_r, op_ri, op_branch, op_restoreg, op_br;
         long ri_upper, ri_lower;
         boolean setflags;
         
@@ -154,6 +154,7 @@ class ControlUnit {
         op_ri = op_r || op_i;
         op_branch = op_cb || op_bflag || op_b;
         op_restoreg = op_mov || op_shift || op_ri;
+        op_br = (opcode & Constants.BR_MASK) == Constants.BR_BITSET;
         
         // upper 3 bits and lower 3:1 bits for R- and I- format opcodes
         ri_upper = (opcode >> (Constants.OPCODESIZE - 3)) & 0x7;
@@ -166,8 +167,8 @@ class ControlUnit {
         
         long control = 0;
         control = BitUtils.setBit(control, Constants.SIGNLOAD, (Constants.LDURSW == opcode) ? 1 : 0);
-        control = BitUtils.setBit(control, Constants.REG1LOC, (op_cb || op_shift || op_bflag) ? 1 : 0);
-        control = BitUtils.setBit(control, Constants.REG2LOC, (op_cb || op_ldur || op_stur || op_mov) ? 1 : 0);
+        control = BitUtils.setBit(control, Constants.REG1LOC, (op_cb || op_shift || op_bflag || op_br) ? 1 : 0);
+        control = BitUtils.setBit(control, Constants.REG2LOC, (op_cb || op_ldur || op_stur || op_mov || op_br) ? 1 : 0);
         control = BitUtils.setBit(control, Constants.USEMOV, op_mov ? 1 : 0);
         control = BitUtils.setBit(control, Constants.ALU1SRC, op_branch ? 1 : 0);
         control = BitUtils.setBit(control, Constants.ALU2SRC, (op_ldur || op_stur || op_i || op_branch) ? 1 : 0);
@@ -287,7 +288,7 @@ class FlagsRegister {
 class BranchControl {
     public static boolean shouldBranch(int opcode, long readreg2, int rd, int flags) {
         boolean[] flagbranch = new boolean[16];
-        boolean unconditional, conditional, flagbased;
+        boolean unconditional, conditional, flagbased, branchRegister;
         boolean zero;
         boolean n, z, v, c;
         
@@ -318,6 +319,9 @@ class BranchControl {
         flagbranch[0xe] = false;
         flagbranch[0xf] = false;
         
+        // whether to branch register
+        branchRegister = (opcode & Constants.BR_MASK) == Constants.BR_BITSET; 
+
         // whether to unconditionally branch
         unconditional = (opcode & Constants.B_MASK) == Constants.B_BITSET;
         
@@ -329,7 +333,7 @@ class BranchControl {
         flagbased = ((opcode & Constants.BFLAG_MASK) == Constants.BFLAG_BITSET) &&
                    flagbranch[rd & 0xF];
         
-        return unconditional || conditional || flagbased;
+        return branchRegister || unconditional || conditional || flagbased;
     }
 }
 
@@ -381,7 +385,12 @@ class ALU {
         flags |= ((res >> 63) & 1) << 3; // N
         flags |= (res == 0 ? 1 : 0) << 2; // Z
         flags |= (((usedb >> 63) == (useda >> 63)) && ((res >> 63) != (useda >> 63)) ? 1 : 0) << 1; // V
-        flags |= ((array[aluop & 0x3] >> 64) & 1); // C
+        
+        if ((aluop & 0x3) == Constants.ALUOP_ADD) {
+            long sum = array[aluop & 0x3];
+            int carry = ((useda & usedb) | ((useda | usedb) & ~sum)) < 0 ? 1 : 0;
+            flags |= carry; // C
+        }
         
         return new Result(res, flags);
     }
