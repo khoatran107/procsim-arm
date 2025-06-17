@@ -95,7 +95,7 @@ class LoadSim extends Frame implements ActionListener, ItemListener, TextListene
     boolean mouseDown = false;
     String saveString = "";
     boolean snapGrid = true;
-    int snapAmount = 5;
+    int snapAmount = 7;
     boolean showBusNames = true;
     boolean stickConnectedBuses = false;
     String[][] connectedBuses = new String[2][100];

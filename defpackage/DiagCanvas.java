@@ -157,6 +157,10 @@ public class DiagCanvas extends JScrollPane {
         repaint();
     }
 
+    private boolean isInHiddenArea(DiagBus.PermText permText) {
+        return (permText.y > 205 && permText.x < 175); // ahihi
+    }
+
     public void paint(Graphics graphics) {
         Graphics2D graphics2D = (Graphics2D) graphics;
         graphics2D.setColor(Color.white);
@@ -193,15 +197,15 @@ public class DiagCanvas extends JScrollPane {
         for (int i4 = 0; i4 < this.buses.size(); i4++) {
             DiagBus diagBus = this.buses.get(i4);
             graphics2D.setColor(Color.ORANGE);
-            graphics2D.fillOval(diagBus.x[0] - 5, diagBus.y[0] - 5, 10, 10);
+            graphics2D.fillOval(diagBus.x[0] - 3, diagBus.y[0] - 3, 6, 6);
             if (this.showAttach && !diagBus.doneBus) {
-                graphics2D.fillOval(diagBus.x[diagBus.numPoints] - 5, diagBus.y[diagBus.numPoints] - 5, 10, 10);
+                graphics2D.fillOval(diagBus.x[diagBus.numPoints] - 3, diagBus.y[diagBus.numPoints] - 3, 6, 6);
             } else if (diagBus.doneBus) {
-                graphics2D.fillOval(diagBus.x[diagBus.numPoints - 1] - 5, diagBus.y[diagBus.numPoints - 1] - 5, 10, 10);
+                graphics2D.fillOval(diagBus.x[diagBus.numPoints - 1] - 3, diagBus.y[diagBus.numPoints - 1] - 3, 6, 6);
             }
         }
         Font font2 = new Font("Arial", 1, 14);
-        Font font3 = new Font("Arial", 0, 12);
+        Font font3 = new Font("Arial", 0, 9);
         graphics2D.setStroke(new BasicStroke(1.0f));
         graphics2D.setFont(font3);
         for (int i5 = 0; i5 < this.buses.size(); i5++) {
@@ -210,12 +214,13 @@ public class DiagCanvas extends JScrollPane {
                 graphics2D.setComposite(AlphaComposite.getInstance(3, 0.8f));
             }
             DiagBus diagBus2 = this.buses.get(i5);
-            if (this.showBusNames && diagBus2.busLabelOut.str != null && !diagBus2.busLabelOut.str.equals("") && !diagBus2.busLabelOut.hidden) {
+            if (this.showBusNames && diagBus2.busLabelOut.str != null && !diagBus2.busLabelOut.str.equals("") && !diagBus2.busLabelOut.hidden
+                && !isInHiddenArea(diagBus2.busLabelOut)) {
                 drawBusNames(i5, graphics2D, font3, diagBus2.outName, diagBus2.busLabelOut);
             }
-            if (this.showBusNames && diagBus2.busLabelIn.str != null && !diagBus2.busLabelIn.str.equals("") && !diagBus2.busLabelIn.hidden) {
-                drawBusNames(i5, graphics2D, font3, diagBus2.inText, diagBus2.busLabelIn);
-            }
+            // if (this.showBusNames && diagBus2.busLabelIn.str != null && !diagBus2.busLabelIn.str.equals("") && !diagBus2.busLabelIn.hidden) {
+            //     drawBusNames(i5, graphics2D, font3, diagBus2.inText, diagBus2.busLabelIn);
+            // }
             if (this.b_Transparency) {
                 graphics2D.setComposite(composite);
             }
@@ -230,6 +235,14 @@ public class DiagCanvas extends JScrollPane {
         }
         if (this.b_ViewSim) {
             drawStatus(graphics2D);
+        }
+        graphics2D.setFont(font);
+        for (int i = 0; i < this.comps.size(); i++) {
+            PComponent pComponent = this.comps.get(i);
+            int stringWidth = graphics2D.getFontMetrics(font).stringWidth(pComponent.name);
+            int height = graphics2D.getFontMetrics(font).getHeight();
+            graphics2D.setColor(this.compNameCol);
+            graphics2D.drawString(pComponent.name, ((pComponent.x + (pComponent.width / 2)) + 1) - (stringWidth / 2), pComponent.y + (pComponent.height / 2) + ((int) (height * 0.35d)));
         }
     }
 
@@ -315,10 +328,6 @@ public class DiagCanvas extends JScrollPane {
                 graphics2D.setColor(Color.black);
                 graphics2D.drawRect(pComponent.x, pComponent.y, pComponent.width, pComponent.height);
             }
-            int stringWidth = graphics2D.getFontMetrics(font).stringWidth(pComponent.name);
-            int height = graphics2D.getFontMetrics(font).getHeight();
-            graphics2D.setColor(this.compNameCol);
-            graphics2D.drawString(pComponent.name, ((pComponent.x + (pComponent.width / 2)) + 1) - (stringWidth / 2), pComponent.y + (pComponent.height / 2) + ((int) (height * 0.35d)));
         }
     }
 
@@ -326,14 +335,14 @@ public class DiagCanvas extends JScrollPane {
         int stringWidth = graphics2D.getFontMetrics(font).stringWidth(str);
         permText.height = graphics2D.getFontMetrics(font).getHeight();
         permText.width = stringWidth + 2;
-        graphics2D.setColor(Color.yellow);
-        graphics2D.fillRoundRect(permText.x - 2, (permText.y - permText.height) + 3, permText.width, permText.height, 10, 10);
-        if (permText.moving) {
-            graphics2D.setColor(Color.red);
-            graphics2D.drawRoundRect(permText.x - 2, (permText.y - permText.height) + 3, permText.width, permText.height, 10, 10);
-        }
+        // graphics2D.setColor(Color.yellow);
+        // graphics2D.fillRoundRect(permText.x - 2, (permText.y - permText.height) + 3, permText.width, permText.height, 10, 10);
+        // if (permText.moving) {
+        //     graphics2D.setColor(Color.red);
+        //     graphics2D.drawRoundRect(permText.x - 2, (permText.y - permText.height) + 3, permText.width, permText.height, 10, 10);
+        // }
         graphics2D.setColor(Color.black);
-        graphics2D.drawString(permText.str, permText.x, permText.y);
+        graphics2D.drawString("  " + permText.str, permText.x, permText.y);
     }
 
     private void drawBus(int i, Graphics2D graphics2D) {
@@ -373,16 +382,17 @@ public class DiagCanvas extends JScrollPane {
                 arrow = getArrow(i, i3, i2, i4, -4, false);
             }
             graphics2D.fillPolygon(arrow);
-            if (diagBus.x[1] != -20) {
-                graphics2D.fillPolygon(getArrow(diagBus.x[0], diagBus.y[0], diagBus.x[1], diagBus.y[1], 15, true));
-            }
+            // if (diagBus.x[1] != -20) {
+            //     graphics2D.fillPolygon(getArrow(diagBus.x[0], diagBus.y[0], diagBus.x[1], diagBus.y[1], 15, true));
+            // }
         }
     }
 
     public Polygon getArrow(int i, int i2, int i3, int i4, int i5, boolean z) {
         double d = -Math.atan2(i4 - i2, i3 - i);
-        double[] dArr = {((-5.0d) * 1.0d) + i5, ((-5.0d) * 1.0d) + i5, (5.0d * 1.0d) + i5};
-        double[] dArr2 = {(5.0d * 1.0d) + 0, ((-5.0d) * 1.0d) + 0, 0 + 0};
+        double value = 5.0;
+        double[] dArr = {((-value) * 1.0d) + i5, ((-value) * 1.0d) + i5, (value * 1.0d) + i5};
+        double[] dArr2 = {(value * 1.0d) + 0, ((-value) * 1.0d) + 0, 0 + 0};
         double[] dArr3 = {dArr[0], dArr[1], dArr[2]};
         double[] dArr4 = {dArr2[0], dArr2[1], dArr2[2]};
         dArr[0] = (dArr3[0] * Math.cos(d)) + (dArr4[0] * Math.sin(d));

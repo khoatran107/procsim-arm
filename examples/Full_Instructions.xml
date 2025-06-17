@@ -8,7 +8,7 @@
 		<name>PC</name>
 		<description>Progam Counter</description>
 		<specialComponent comp="StartComp"/>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="PC" bits="64" alternativeStr="true">
 				<to name="PCAddress" comp="InstrMemory"/>
@@ -38,7 +38,7 @@
 		<name>InstrMemory</name>
 		<specialComponent comp="InstructionMemory"/>
 		<description>Intruction Memory</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="Intruction" bits="32" alternativeStr="true">
 				<to name="Instr" comp="Spliter"/>
@@ -66,10 +66,10 @@
 	<Component>
 		<name>Spliter</name>
 		<description>Instruction Spliter</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="Opcode" bits="11">
-				<to name="Opcode" comp="Control"/>
+				<to name="Opcode" comp="CU"/>
 				<to name="Opcode" comp="BranchControl"/>
 			</output>
 			<output name="FullInstruction" bits="32">
@@ -165,9 +165,9 @@
 	
 
 	<Component>
-		<name>Control</name>
+		<name>CU</name>
 		<description>Control Unit</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<inputBuses>
 			<input name="Opcode" bits="11"/>
 		</inputBuses>
@@ -252,7 +252,7 @@
 		<name>Registers</name>
 		<specialComponent comp="Registers"/>
 		<description>Set of Registers</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="ReadData1" bits="64" alternativeStr="true">
 				<to name="ReadData1" comp="MuxALU1SRC"/>
@@ -312,7 +312,7 @@
 	<Component>
 		<name>SignExtend</name>
 		<description>Sign Extend base on instruction</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="SignExtended" bits="64" alternativeStr="true">
 				<to name="SignExtended" comp="MuxALU2SRC"/>
@@ -341,7 +341,7 @@
 	<Component>
 		<name>FlagControl</name>
 		<description>Flag Control Unit</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<inputBuses>
 			<input name="SETFLAGS" bits="1"/>
 			<input name="NewFlags" bits="4"/>
@@ -370,7 +370,7 @@
 	<Component>
 		<name>BranchControl</name>
 		<description>Branch Control Unit</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="Branch" bits="1">
 				<to name="Branch" comp="MuxBranch"/>
@@ -403,7 +403,7 @@
 	<Component>
 		<name>ALU</name>
 		<description>Arithmetic Logic Unit</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<inputBuses>
 			<input name="ALUOP" bits="6"/>
 			<input name="ALUInp1" bits="64"/>
@@ -440,7 +440,7 @@
 	<Component>
 		<name>MOV</name>
 		<description>MOV</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<inputBuses>
 			<input name="ReadData2" bits="64"/>
 			<input name="Extended" bits="64"/>
@@ -472,9 +472,9 @@
 		<name>Memory</name>
 		<specialComponent comp="MainMemory"/>
 		<description>Data Memory</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
-			<output name="ReadData" bits="64" optional="true" optionalDependsOn="MEMREAD"  optionalComp="Control" optionalIf="0" alternativeStr="true">
+			<output name="ReadData" bits="64" optional="true" optionalDependsOn="MEMREAD"  optionalComp="CU" optionalIf="0" alternativeStr="true">
 				<to name="ReadData" comp="MuxMEMTOREG"/>
 			</output>
 		</outputBuses>
@@ -543,7 +543,7 @@
 	<Component>
 		<name>MuxREG1LOC</name>
 		<description>Multiplexor XZR or Rn</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="ReadReg1" bits="5">
 				<to name="ReadReg1" comp="Registers"/>
@@ -585,7 +585,7 @@
 		<Component>
 		<name>MuxREG2LOC</name>
 		<description>Multiplexor Rd or Rm</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="ReadReg2" bits="5">
 				<to name="ReadReg2" comp="Registers"/>
@@ -648,7 +648,7 @@
 	<Component>
 		<name>MuxPCTOREG1</name>
 		<description>Multiplexor XLR or Rd</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="WriteReg" bits="5">
 				<to name="WriteReg" comp="Registers"/>
@@ -690,7 +690,7 @@
 	<Component>
 		<name>MuxALU1SRC</name>
 		<description>Multiplexor for ALU input 1, selects PC or ReadData1</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="ALUInp1" bits="64" alternativeStr="true">
 				<to name="ALUInp1" comp="ALU"/>
@@ -732,7 +732,7 @@
 	<Component>
 		<name>MuxALU2SRC</name>
 		<description>Multiplexor for ALU input 2, selects SignExtended or ReadData2</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="ALUInp2" bits="64" alternativeStr="true">
 				<to name="ALUInp2" comp="ALU"/>
@@ -774,7 +774,7 @@
 	<Component>
 		<name>MuxUSEMOV</name>
 		<description>Multiplexor selects MOVResult or ALUResult</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="Result" bits="64" alternativeStr="true">
 				<to name="Result" comp="MuxMEMTOREG"/>
@@ -818,7 +818,7 @@
 	<Component>
 		<name>MuxMEMTOREG</name>
 		<description>Multiplexor selects ReadData or Result</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="MEMTOREGResult" bits="64" alternativeStr="true">
 				<to name="MEMTOREGResult" comp="MuxPCTOREG2"/>
@@ -860,7 +860,7 @@
 	<Component>
 		<name>MuxPCTOREG2</name>
 		<description>Multiplexor selects PC or MEMTOREGResult</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="WriteData" bits="64" alternativeStr="true" optional="true" finalBus="true">
 				<to name="WriteData" comp="Registers"/>
@@ -902,7 +902,7 @@
 	<Component>
 		<name>PCIncrement</name>
 		<description>Incrementing PC by 4</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<inputBuses>
 			<input name="PC" bits="64"/>
 		</inputBuses>
@@ -930,7 +930,7 @@
 	<Component>
 		<name>MuxBranch</name>
 		<description>Multiplexor selects next PC value based on Branch signal</description>
-		<hidden>false</hidden>
+		<hidden>true</hidden>
 		<outputBuses>
 			<output name="newPC" bits="64" alternativeStr="true">
 				<to name="newPC" comp="PC"/>
