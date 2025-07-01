@@ -3,8 +3,6 @@ package defpackage;
 import defpackage.ViewSim;
 import java.util.Vector;
 
-import javax.swing.SwingUtilities;
-
 /* loaded from: ProcSim.jar:AnimThrd.class */
 public class AnimThrd implements Runnable {
     DiagCanvas dCanv;
@@ -23,9 +21,6 @@ public class AnimThrd implements Runnable {
     boolean instantSpeed = false;
     boolean step = false;
     boolean doOneStep = false;
-
-    boolean stepInstruction = false;
-    boolean mustBlock = true;
 
     AnimThrd(DiagCanvas diagCanvas) {
         this.dCanv = diagCanvas;
@@ -105,7 +100,6 @@ public class AnimThrd implements Runnable {
         this.dCanv.resetImage();
     }
 
-    
     public void nextAnim() {
         this.animationList = this.dCanv.viewSim.animationList;
         if (this.numAnimItem > this.animationList.size() - 1 || this.animationList.size() == 0) {
@@ -115,24 +109,6 @@ public class AnimThrd implements Runnable {
                 return;
             } else {
                 this.numAnimItem = 0;
-                PComponent nextComp = this.dCanv.viewSim.peekNextComp();
-                if (nextComp != null && nextComp.isStartComp && this.stepInstruction) {
-                    if (mustBlock) {
-                        this.pause = true;
-                        this.stepInstruction = false;
-                        SwingUtilities.invokeLater(new Runnable() { // from class: AnimThrd.1
-                            @Override // java.lang.Runnable
-                            public void run() {
-                                AnimThrd.this.dCanv.viewSim.changePauseBut();
-                            }
-                        });
-                        this.dCanv.repaint();
-                        mustBlock = false;
-                        return;
-                    } else {
-                        mustBlock = true;
-                    }
-                }
                 if (!this.dCanv.viewSim.nextCompAnim()) {
                     return;
                 }

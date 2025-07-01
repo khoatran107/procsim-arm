@@ -69,7 +69,6 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
     Label lblSimName = new Label("");
     mousePressHandler mPressHandler = new mousePressHandler();
     boolean step = false;
-    boolean stepInstruction = false;
     Frame frame = this;
     StatusBar statusBar = new StatusBar();
 
@@ -151,7 +150,6 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             if (this.step && !this.dCanvas.animThread.step) {
                 this.dCanvas.animThread.nextAnim();
                 this.step = false;
-                this.stepInstruction = false;
             }
         }
         if (actionEvent.getSource() == this.butPause) {
@@ -160,14 +158,12 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             if (this.step && !this.dCanvas.animThread.step) {
                 this.dCanvas.animThread.nextAnim();
                 this.step = false;
-                this.stepInstruction = false;
             }
         }
         if (actionEvent.getSource() == this.butRestart) {
             if (this.step && !this.dCanvas.animThread.step) {
                 this.dCanvas.animThread.nextAnim();
                 this.step = false;
-                this.stepInstruction = false;
             }
             if (this.dCanvas.animThread.animating) {
                 this.dCanvas.animThread.restart();
@@ -242,32 +238,14 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             this.dCanvas.animThread.step = true;
             this.dCanvas.animThread.pause = true;
             this.step = true;
-            this.stepInstruction = true;
             changePauseBut();
         }
         if (actionEvent.getSource() == this.butStepInstruction) {
-            if (this.stepInstruction && !this.dCanvas.animThread.stepInstruction) {
-                this.dCanvas.animThread.nextAnim();
-            }
-            if (!this.dCanvas.animThread.animating) {
-                System.out.println("Not animating.");
-                this.sim.resetMemoryAndRegs();
-                this.dCanvas.animThread.restart();
-                startNewAnim();
-            }
-            this.dCanvas.animThread.stepInstruction = true;
-            this.dCanvas.animThread.pause = false;
-            this.stepInstruction = true;
-            this.step = true;
-            changePauseBut();
-
-            // if (this.dCanvas.animThread.anims.isEmpty()) {
-            //     this.dCanvas.animThread.nextAnim();
-            // }
+            // ==== MARKER HERE ====
         }
     }
 
-    public void changePauseBut() {
+    private void changePauseBut() {
         if (this.dCanvas.animThread.pause) {
             this.butPause.setLabel("Resume");
         } else {
@@ -625,7 +603,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
         return this.dCanvas.buses.indexOf(diagBus);
     }
 
-    public int findNextComp() {
+    private int findNextComp() {
         return findNextComp(0);
     }
 
@@ -733,13 +711,5 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
                 graphics2D.drawString("Component Description: " + currentAnimComp.description, 5, height);
             }
         }
-    }
-
-    public PComponent peekNextComp() {
-        int nextCompIndex = findNextComp(0);
-        if (nextCompIndex != -1) {
-            return this.sim.comps.get(nextCompIndex);
-        }
-        return null;
     }
 }
