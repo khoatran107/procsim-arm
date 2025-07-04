@@ -30,6 +30,7 @@ class Simulator {
     }
 
     public void resetMemoryAndRegs() {
+        this.execInstr = 0;
         dataMemory.reset();
         for (int i2 = 0; i2 < 32; i2++) {
             this.registers[i2] = "";
