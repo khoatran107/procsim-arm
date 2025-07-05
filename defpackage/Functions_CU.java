@@ -263,6 +263,13 @@ class SignExtension {
 class FlagsRegister {
     private int flags = 0;
 
+    @Override
+    public FlagsRegister clone() {
+        FlagsRegister cloned = new FlagsRegister();
+        cloned.flags = this.flags;
+        return cloned;
+    }
+
     public void update(boolean setflags, int flagstoset) {
         if (setflags) {
             this.flags = flagstoset & 0xF;
@@ -417,7 +424,16 @@ class MOV {
 // Data Memory module equivalent
 class DataMemory {
     private byte[] data = new byte[(int)Constants.MEMDATASIZE];
-    
+
+    @Override
+    public DataMemory clone() {
+        DataMemory cloned = new DataMemory();
+        // Deep copy the byte array
+        cloned.data = new byte[this.data.length];
+        System.arraycopy(this.data, 0, cloned.data, 0, this.data.length);
+        return cloned;
+    }
+
     public void reset() {
         // Reset memory to zeros or load from file
         for (int i = 0; i < data.length; i++) {

@@ -57,6 +57,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
     Button butPause = new Button("Pause");
     Button butStep = new Button("Step");
     Button butStepInstruction = new Button("Step Instruction");
+    Button butRedoInstruction = new Button("Redo Instruction");
     Button butShowRegisters = new Button("Registers");
     Button butShowMainMem = new Button("Main Memory");
     Button butShowIntrMem = new Button("Instruction Memory");
@@ -265,6 +266,26 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             //     this.dCanvas.animThread.nextAnim();
             // }
         }
+        if (actionEvent.getSource() == this.butRedoInstruction) {
+            // revert back to state of PC
+            this.sim.applyBackup();
+
+            // do the rest the same as "Step Instruction"
+            if (this.stepInstruction && !this.dCanvas.animThread.stepInstruction) {
+                this.dCanvas.animThread.nextAnim();
+            }
+            if (!this.dCanvas.animThread.animating) {
+                System.out.println("Not animating.");
+                this.sim.resetMemoryAndRegs();
+                this.dCanvas.animThread.restart();
+                startNewAnim();
+            }
+            this.dCanvas.animThread.stepInstruction = true;
+            this.dCanvas.animThread.pause = false;
+            this.stepInstruction = true;
+            this.step = true;
+            changePauseBut();
+        }
     }
 
     public void changePauseBut() {
@@ -305,6 +326,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             diagBus.animated = false;
             diagBus.bus.doneAnimOnce = false;
             if (diagBus.out.isStartComp) {
+                System.err.println("isStartComp");
                 this.animComp = this.dCanvas.buses.get(i3).out;
                 diagBus.animated = true;
                 diagBus.newVal = true;
@@ -360,6 +382,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
         this.butInstantSpeed.addActionListener(this);
         this.butStep.addActionListener(this);
         this.butStepInstruction.addActionListener(this);
+        this.butRedoInstruction.addActionListener(this);
         this.butClose.setFont(new Font("", 1, 12));
         this.butStart.setFont(new Font("", 1, 12));
         this.butRestart.setFont(new Font("", 1, 12));
@@ -368,6 +391,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
         panel.add(this.butPause);
         panel.add(this.butStep);
         panel.add(this.butStepInstruction);
+        panel.add(this.butRedoInstruction);
         panel.add(new Label("                                          "));
         panel.add(this.butShowRegisters);
         panel.add(this.butShowMainMem);
@@ -554,6 +578,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             return false;
         }
         if (this.sim.comps.get(findNextComp).isStartComp) {
+            System.err.println("Bruh startcomp");
             boolean z = false;
             for (int i = findNextComp + 1; i < this.sim.comps.size() && !z; i++) {
                 int findNextComp2 = findNextComp(i);
@@ -568,6 +593,7 @@ class ViewSim extends Frame implements ActionListener, ChangeListener, ItemListe
             if (z) {
                 ProcSim.out("Found a non-start component to do!");
             }
+            this.sim.saveBackup();
         }
         if (this.sim.comps.get(findNextComp).isStartComp && this.sim.resetEveryRound) {
             resetAll(this.sim.comps.get(findNextComp));

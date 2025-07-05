@@ -6,7 +6,6 @@ import java.util.Vector;
 class Simulator {
     ProcSim source;
     DiagCanvas dCanv;
-    String[] registers;
     String name = "None";
     String path = "./examples/Full_Instructions.xml";
     Vector<PComponent> comps = new Vector<>();
@@ -15,9 +14,108 @@ class Simulator {
     int mainMemSize = 10000;
     String lastChangedReg = "-1";
     int lastChangedMem = -1;
+
     int execInstr = 0;
+    String[] registers; // registers
     DataMemory dataMemory = new DataMemory();
     FlagsRegister flagsRegister = new FlagsRegister();
+
+    // Backup storage
+    String busToPCBackup;
+    private String[] registersBackup;
+    private DataMemory dataMemoryBackup;
+    private FlagsRegister flagsRegisterBackup;
+    
+    /**
+     * Saves the current state of the simulator to backup storage
+     */
+    public void saveBackup() {
+        for (int i = 0; i < comps.size(); i++) {
+            if (comps.get(i).isStartComp) {
+                busToPCBackup = comps.get(i).operations.get(0).inputsToOp.get(0).binaryValue;
+                break;
+            }
+        }
+        // Backup registers (deep copy)
+        if (registers != null) {
+            registersBackup = new String[registers.length];
+            System.arraycopy(registers, 0, registersBackup, 0, registers.length);
+        } else {
+            registersBackup = null;
+        }
+        
+        // Backup data memory (assuming DataMemory has a copy constructor or clone method)
+        // If DataMemory doesn't have these, you'll need to implement a deep copy method
+        if (dataMemory != null) {
+            dataMemoryBackup = dataMemory.clone(); // or new DataMemory(dataMemory)
+        } else {
+            dataMemoryBackup = null;
+        }
+        
+        // Backup flags register (assuming FlagsRegister has a copy constructor or clone method)
+        // If FlagsRegister doesn't have these, you'll need to implement a deep copy method
+        if (flagsRegister != null) {
+            flagsRegisterBackup = flagsRegister.clone(); // or new FlagsRegister(flagsRegister)
+        } else {
+            flagsRegisterBackup = null;
+        }
+    }
+    
+    /**
+     * Restores the simulator state from backup storage
+     * @throws IllegalStateException if no backup has been saved
+     */
+    public void applyBackup() {
+        for (int i = 0; i < comps.size(); i++) {
+            if (comps.get(i).isStartComp) {
+                comps.get(i).operations.get(0).inputsToOp.get(0).binaryValue = busToPCBackup;
+                break;
+            }
+        }
+
+        if (registersBackup == null && dataMemoryBackup == null && flagsRegisterBackup == null) {
+            throw new IllegalStateException("No backup available to restore");
+        }
+        
+        // Restore registers (deep copy)
+        if (registersBackup != null) {
+            registers = new String[registersBackup.length];
+            System.arraycopy(registersBackup, 0, registers, 0, registersBackup.length);
+        } else {
+            registers = null;
+        }
+        
+        // Restore data memory
+        if (dataMemoryBackup != null) {
+            dataMemory = dataMemoryBackup.clone(); // or new DataMemory(dataMemoryBackup)
+        } else {
+            dataMemory = new DataMemory();
+        }
+        
+        // Restore flags register
+        if (flagsRegisterBackup != null) {
+            flagsRegister = flagsRegisterBackup.clone(); // or new FlagsRegister(flagsRegisterBackup)
+        } else {
+            flagsRegister = new FlagsRegister();
+        }
+    }
+    
+    /**
+     * Checks if a backup is available
+     * @return true if a backup has been saved, false otherwise
+     */
+    public boolean hasBackup() {
+        return registersBackup != null || dataMemoryBackup != null || flagsRegisterBackup != null;
+    }
+    
+    /**
+     * Clears the backup storage
+     */
+    public void clearBackup() {
+        registersBackup = null;
+        dataMemoryBackup = null;
+        flagsRegisterBackup = null;
+    }
 
     public Simulator(ProcSim procSim) {
         dataMemory.reset();
@@ -83,4 +181,6 @@ class Simulator {
         if (regNum != 31) 
             this.registers[regNum] = value;
     }
+
+
 }
